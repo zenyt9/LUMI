@@ -1,0 +1,180 @@
+"use server";
+
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { slugify } from "@/lib/utils";
+import { generateProductImage, saveUploadedImage } from "@/lib/productImage";
+
+async function requireAdmin() {
+  const session = await auth();
+  if (session?.user?.role !== "ADMIN") {
+    throw new Error("Зөвшөөрөлгүй хандалт");
+  }
+  return session;
+}
+
+const productSchema = z.object({
+  name: z.string().min(2, "Нэр оруулна уу"),
+  description: z.string().min(5, "Тайлбар оруулна уу"),
+  price: z.coerce.number().int().positive("Үнэ эерэг тоо байх ёстой"),
+  stock: z.coerce.number().int().min(0, "Үлдэгдэл 0-ээс багагүй"),
+  categoryId: z.string().min(1, "Ангилал сонгоно уу"),
+  featured: z.boolean().optional(),
+  image: z.string().optional(),
+});
+
+export type ProductFormState = { error?: string } | undefined;
+
+export async function createProduct(
+  _prev: ProductFormState,
+  formData: FormData,
+): Promise<ProductFormState> {
+  await requireAdmin();
+
+  const parsed = productSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+    price: formData.get("price"),
+    stock: formData.get("stock"),
+    categoryId: formData.get("categoryId"),
+    featured: formData.get("featured") === "on",
+    image: formData.get("image"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
+  }
+  const data = parsed.data;
+
+  // Давхцахгүй slug үүсгэх
+  const base = slugify(data.name) || "buteegdehuun";
+  let slug = base;
+  let n = 1;
+  while (await prisma.product.findUnique({ where: { slug } })) {
+    slug = `${base}-${n++}`;
+  }
+
+  // Зургийн эрэмбэ: upload файл → URL → автомат SVG
+  let image: string;
+  const file = formData.get("imageFile");
+  try {
+    if (file instanceof File && file.size > 0) {
+      image = await saveUploadedImage(file);
+    } else if (data.image && data.image.trim().length > 0) {
+      image = data.image.trim();
+    } else {
+      image = generateProductImage(data.name);
+    }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Зураг хадгалахад алдаа гарлаа" };
+  }
+
+  await prisma.product.create({
+    data: {
+      name: data.name,
+      slug,
+      description: data.description,
+      price: data.price,
+      stock: data.stock,
+      categoryId: data.categoryId,
+      featured: data.featured ?? false,
+      image,
+    },
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  redirect("/admin/products");
+}
+
+export async function updateProduct(
+  id: string,
+  _prev: ProductFormState,
+  formData: FormData,
+): Promise<ProductFormState> {
+  await requireAdmin();
+
+  const parsed = productSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+    price: formData.get("price"),
+    stock: formData.get("stock"),
+    categoryId: formData.get("categoryId"),
+    featured: formData.get("featured") === "on",
+    image: formData.get("image"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
+  }
+  const data = parsed.data;
+
+  // Зураг: шинэ файл upload хийсэн бол хадгална, эсвэл URL өгсөн бол солино,
+  // аль аль нь байхгүй бол хуучин зургийг хэвээр үлдээнэ.
+  let newImage: string | undefined;
+  const file = formData.get("imageFile");
+  try {
+    if (file instanceof File && file.size > 0) {
+      newImage = await saveUploadedImage(file);
+    } else if (data.image && data.image.trim().length > 0) {
+      newImage = data.image.trim();
+    }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Зураг хадгалахад алдаа гарлаа" };
+  }
+
+  await prisma.product.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      stock: data.stock,
+      categoryId: data.categoryId,
+      featured: data.featured ?? false,
+      ...(newImage ? { image: newImage } : {}),
+    },
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  redirect("/admin/products");
+}
+
+export async function deleteProduct(id: string) {
+  await requireAdmin();
+  // Захиалгад орсон бараа байж болзошгүй тул шалгана
+  const inOrders = await prisma.orderItem.count({ where: { productId: id } });
+  if (inOrders > 0) {
+    // Захиалгатай бол устгахын оронд үлдэгдлийг 0 болгож "нуух"
+    await prisma.product.update({
+      where: { id },
+      data: { stock: 0, featured: false },
+    });
+  } else {
+    await prisma.product.delete({ where: { id } });
+  }
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+}
+
+const VALID_STATUSES = [
+  "PENDING",
+  "PAID",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELLED",
+];
+
+export async function updateOrderStatus(orderId: string, status: string) {
+  await requireAdmin();
+  if (!VALID_STATUSES.includes(status)) {
+    throw new Error("Буруу төлөв");
+  }
+  await prisma.order.update({ where: { id: orderId }, data: { status } });
+  revalidatePath("/admin/orders");
+  revalidatePath(`/orders/${orderId}`);
+}

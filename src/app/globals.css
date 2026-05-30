@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ===== Lumi брэндийн өнгөний систем — DARK ===== */
+:root {
+  --background: #161015; /* дулаан хар (бараан) */
+  --surface: #211720; /* картны өнгөлөг гадаргуу */
+  --foreground: #f3e9ec; /* дулаан цайвар текст */
+  --muted: #a8969c; /* бүдэг мав-саарал */
+  --blush: #e0a0b4; /* үндсэн роз (бараан дээр тод) */
+  --blush-dark: #c97e94; /* hover */
+  --blush-soft: #2a1d24; /* бараан роз гадаргуу (хэсэг, footer) */
+  --gold: #d4b15e; /* алтан өргөлт */
+  --border: #3a2c33; /* нарийн дулаан хүрээ */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-blush: var(--blush);
+  --color-blush-dark: var(--blush-dark);
+  --color-blush-soft: var(--blush-soft);
+  --color-gold: var(--gold);
+  --color-border: var(--border);
+
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* Зөөлөн scroll, fade animation туслахууд */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.5s ease both; }
