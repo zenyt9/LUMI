@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CartBadge } from "./CartBadge";
 import { CategoryMenu } from "./CategoryMenu";
+import { MobileMenu } from "./MobileMenu";
 import { logout } from "@/lib/actions/auth";
 
 export async function Header() {
@@ -79,6 +80,9 @@ export async function Header() {
               Нэвтрэх
             </Link>
           )}
+
+          {/* Гар утасны цэс */}
+          <MobileMenu categories={categories} />
         </div>
       </div>
     </header>
