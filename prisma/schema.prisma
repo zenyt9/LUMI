@@ -51,23 +51,27 @@ model User {
   email        String   @unique
   passwordHash String
   role         String   @default("USER") // "USER" | "ADMIN"
+  points       Int      @default(0) // урамшууллын оноо (түвшин тодорхойлно)
   orders       Order[]
   createdAt    DateTime @default(now())
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
-  status    String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED
-  total     Int
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  status       String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED
+  total        Int // эцсийн төлбөр (барааны дүн - хөнгөлөлт + хүргэлт)
+  discount     Int         @default(0) // түвшингийн хөнгөлөлт
+  shipping     Int         @default(0) // хүргэлтийн хураамж
+  pointsEarned Int         @default(0) // хүргэгдсэн үед олгосон оноо (давхар олгохгүйн тулд)
   // Хүргэлтийн мэдээлэл
-  fullName  String
-  phone     String
-  address   String
-  note      String?
-  items     OrderItem[]
-  createdAt DateTime    @default(now())
+  fullName     String
+  phone        String
+  address      String
+  note         String?
+  items        OrderItem[]
+  createdAt    DateTime    @default(now())
 }
 
 model OrderItem {

@@ -35,7 +35,6 @@ export default async function OrderDetailPage({
   }
 
   const itemsTotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = order.total - itemsTotal;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -126,9 +125,17 @@ export default async function OrderDetailPage({
             <span className="text-muted">Барааны дүн</span>
             <span>{formatPrice(itemsTotal)}</span>
           </div>
+          {order.discount > 0 && (
+            <div className="flex justify-between mb-1 text-green-400">
+              <span>Түвшингийн хөнгөлөлт</span>
+              <span>−{formatPrice(order.discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between mb-1">
             <span className="text-muted">Хүргэлт</span>
-            <span>{shipping <= 0 ? "Үнэгүй" : formatPrice(shipping)}</span>
+            <span>
+              {order.shipping <= 0 ? "Үнэгүй" : formatPrice(order.shipping)}
+            </span>
           </div>
           <div className="border-t border-border mt-2 pt-2 flex justify-between font-semibold text-base">
             <span>Нийт</span>
@@ -141,6 +148,7 @@ export default async function OrderDetailPage({
           {order.status === "DELIVERED" ? (
             <p className="text-xs text-green-300 mt-1">
               ✔ Хүргэгдсэн — төлбөр хүлээн авсан
+              {order.pointsEarned > 0 && ` · +${order.pointsEarned} оноо`}
             </p>
           ) : (
             <p className="text-xs text-muted mt-1">

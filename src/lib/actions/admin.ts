@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { slugify } from "@/lib/utils";
 import { generateProductImage, saveUploadedImage } from "@/lib/productImage";
+import { pointsForAmount } from "@/lib/loyalty";
 
 async function requireAdmin() {
   const session = await auth();
@@ -193,9 +194,35 @@ export async function updateOrderStatus(orderId: string, status: string) {
   if (!VALID_STATUSES.includes(status)) {
     throw new Error("Буруу төлөв");
   }
-  await prisma.order.update({ where: { id: orderId }, data: { status } });
+
+  // Хүргэгдсэн болоход урамшууллын оноог нэг удаа олгоно
+  await prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      select: { userId: true, total: true, pointsEarned: true, status: true },
+    });
+    if (!order) throw new Error("Захиалга олдсонгүй");
+
+    await tx.order.update({ where: { id: orderId }, data: { status } });
+
+    if (status === "DELIVERED" && order.pointsEarned === 0) {
+      const earned = pointsForAmount(order.total);
+      if (earned > 0) {
+        await tx.order.update({
+          where: { id: orderId },
+          data: { pointsEarned: earned },
+        });
+        await tx.user.update({
+          where: { id: order.userId },
+          data: { points: { increment: earned } },
+        });
+      }
+    }
+  });
+
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);
+  revalidatePath("/profile");
 }
 
 // ===== Брэнд =====

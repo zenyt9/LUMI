@@ -6,8 +6,15 @@ import Image from "next/image";
 import { useCart } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { createOrder } from "@/lib/actions/order";
+import { computePricing, pointsForAmount, type Tier } from "@/lib/loyalty";
 
-export function CheckoutForm({ defaultName }: { defaultName: string }) {
+export function CheckoutForm({
+  defaultName,
+  tier,
+}: {
+  defaultName: string;
+  tier: Tier;
+}) {
   const router = useRouter();
   const { items, totalPrice, clear } = useCart();
   const [mounted, setMounted] = useState(false);
@@ -30,8 +37,9 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
     );
   }
 
-  const total = totalPrice();
-  const shipping = total >= 100000 ? 0 : 5000;
+  const subtotal = totalPrice();
+  const pricing = computePricing(subtotal, tier);
+  const earnPoints = pointsForAmount(pricing.total);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -120,16 +128,39 @@ export function CheckoutForm({ defaultName }: { defaultName: string }) {
           <div className="border-t border-border pt-3 space-y-1 text-sm">
             <div className="flex justify-between">
               <span className="text-muted">Барааны дүн</span>
-              <span>{formatPrice(total)}</span>
+              <span>{formatPrice(subtotal)}</span>
             </div>
+            {pricing.discount > 0 && (
+              <div className="flex justify-between text-green-400">
+                <span>
+                  {tier.emoji} {tier.name} хөнгөлөлт (
+                  {Math.round(tier.discountRate * 100)}%)
+                </span>
+                <span>−{formatPrice(pricing.discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted">Хүргэлт</span>
-              <span>{shipping === 0 ? "Үнэгүй" : formatPrice(shipping)}</span>
+              <span>
+                {pricing.shipping === 0 ? "Үнэгүй" : formatPrice(pricing.shipping)}
+              </span>
             </div>
             <div className="flex justify-between font-semibold text-base pt-2">
               <span>Нийт</span>
-              <span className="text-blush-dark">{formatPrice(total + shipping)}</span>
+              <span className="text-blush-dark">
+                {formatPrice(pricing.total)}
+              </span>
             </div>
+            {earnPoints > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-blush pt-2 mt-1 border-t border-border">
+                <span>✦</span>
+                <span>
+                  Энэ захиалгаар{" "}
+                  <span className="font-semibold">{earnPoints} оноо</span>{" "}
+                  цуглуулна (хүргэгдсэний дараа)
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

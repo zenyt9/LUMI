@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { getTier, computePricing } from "@/lib/loyalty";
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Нэрээ оруулна уу"),
@@ -52,7 +53,7 @@ export async function createOrder(
     price: number;
     quantity: number;
   }[] = [];
-  let total = 0;
+  let subtotal = 0;
 
   for (const item of items) {
     const product = products.find((p) => p.id === item.productId);
@@ -65,7 +66,7 @@ export async function createOrder(
         error: `"${product.name}" хүрэлцэхгүй байна (үлдэгдэл: ${product.stock})`,
       };
     }
-    total += product.price * item.quantity;
+    subtotal += product.price * item.quantity;
     orderItems.push({
       productId: product.id,
       name: product.name,
@@ -74,13 +75,23 @@ export async function createOrder(
     });
   }
 
+  // Хэрэглэгчийн түвшингээр хөнгөлөлт/хүргэлтийг сервер талд баталгаажуулан тооцно
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { points: true },
+  });
+  const tier = getTier(dbUser?.points ?? 0);
+  const pricing = computePricing(subtotal, tier);
+
   // Захиалга үүсгэх + үлдэгдэл хорогдуулах (нэг гүйлгээнд)
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
       data: {
         userId: session.user.id,
         status: "PENDING",
-        total,
+        total: pricing.total,
+        discount: pricing.discount,
+        shipping: pricing.shipping,
         fullName,
         phone,
         address,
