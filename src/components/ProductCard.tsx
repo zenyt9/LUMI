@@ -8,12 +8,17 @@ export type ProductCardData = {
   name: string;
   slug: string;
   price: number;
+  oldPrice?: number | null;
   image: string;
   stock: number;
 };
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const outOfStock = product.stock <= 0;
+  const onSale = !!product.oldPrice && product.oldPrice > product.price;
+  const discountPct = onSale
+    ? Math.round((1 - product.price / product.oldPrice!) * 100)
+    : 0;
 
   return (
     <div className="group flex flex-col bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:shadow-blush/10 transition-shadow">
@@ -25,8 +30,13 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           sizes="(max-width: 640px) 50vw, 25vw"
           className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
+        {onSale && (
+          <span className="absolute top-3 left-3 bg-blush text-white text-xs font-semibold px-2 py-1 rounded-full">
+            -{discountPct}%
+          </span>
+        )}
         {outOfStock && (
-          <span className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+          <span className="absolute top-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
             Дууссан
           </span>
         )}
@@ -38,8 +48,15 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.name}
           </h3>
         </Link>
-        <div className="mt-2 mb-4 font-serif text-lg font-semibold text-blush-dark">
-          {formatPrice(product.price)}
+        <div className="mt-2 mb-4 flex items-baseline gap-2">
+          <span className="font-serif text-lg font-semibold text-blush-dark">
+            {formatPrice(product.price)}
+          </span>
+          {onSale && (
+            <span className="text-sm text-muted line-through">
+              {formatPrice(product.oldPrice!)}
+            </span>
+          )}
         </div>
         <div className="mt-auto">
           {outOfStock ? (

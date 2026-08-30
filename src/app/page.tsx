@@ -1,18 +1,33 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ProductCard";
+import { Faq } from "@/components/Faq";
 
 export default async function HomePage() {
-  const [featured, categories] = await Promise.all([
+  const [featured, categories, saleRaw] = await Promise.all([
     prisma.product.findMany({
       where: { featured: true },
       take: 8,
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({
-      include: { _count: { select: { products: true } } },
+      orderBy: { name: "asc" },
+      include: {
+        _count: { select: { products: true } },
+        products: { take: 4, orderBy: { createdAt: "desc" } },
+      },
+    }),
+    prisma.product.findMany({
+      where: { oldPrice: { not: null } },
+      orderBy: { createdAt: "desc" },
+      take: 12,
     }),
   ]);
+
+  // Хямдралтай бараа (хуучин үнэ > одоогийн үнэ)
+  const saleProducts = saleRaw
+    .filter((p) => p.oldPrice != null && p.oldPrice > p.price)
+    .slice(0, 8);
 
   return (
     <div>
@@ -40,6 +55,23 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Итгэлийн зурвас */}
+      <section className="border-y border-border bg-blush-soft/30">
+        <div className="mx-auto max-w-6xl px-4 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
+          {[
+            ["🚚", "Хурдан хүргэлт"],
+            ["✨", "100% жинхэнэ"],
+            ["💵", "Хүргэлтэд төлөх"],
+            ["💬", "24/7 тусламж"],
+          ].map(([icon, title]) => (
+            <div key={title} className="flex items-center justify-center gap-2">
+              <span className="text-xl">{icon}</span>
+              <span className="font-medium">{title}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Ангилал */}
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="font-serif text-3xl font-bold mb-8 text-center">
@@ -64,23 +96,71 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Хямдралтай бараа */}
+      {saleProducts.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pb-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-serif text-3xl font-bold">
+              🔥 Хямдралтай бараа
+            </h2>
+            <Link
+              href="/products"
+              className="text-sm text-blush hover:text-blush-dark font-medium"
+            >
+              Бүгдийг үзэх →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {saleProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Онцлох бараа */}
-      <section className="mx-auto max-w-6xl px-4 pb-8">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-serif text-3xl font-bold">Онцлох бүтээгдэхүүн</h2>
-          <Link
-            href="/products"
-            className="text-sm text-blush hover:text-blush-dark font-medium"
-          >
-            Бүгдийг үзэх →
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {featured.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
+      {featured.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pb-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-serif text-3xl font-bold">Онцлох бүтээгдэхүүн</h2>
+            <Link
+              href="/products"
+              className="text-sm text-blush hover:text-blush-dark font-medium"
+            >
+              Бүгдийг үзэх →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {featured.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Ангилал бүрээр */}
+      {categories
+        .filter((c) => c.products.length > 0)
+        .map((c) => (
+          <section key={c.id} className="mx-auto max-w-6xl px-4 pb-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="font-serif text-3xl font-bold">
+                {categoryEmoji(c.slug)} {c.name}
+              </h2>
+              <Link
+                href={`/products?category=${c.slug}`}
+                className="text-sm text-blush hover:text-blush-dark font-medium"
+              >
+                Бүгдийг үзэх →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {c.products.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        ))}
 
       {/* Давуу талууд */}
       <section className="mx-auto max-w-6xl px-4 py-16">
@@ -88,7 +168,7 @@ export default async function HomePage() {
           {[
             ["🚚", "Хурдан хүргэлт", "Улаанбаатар хотод 24 цагт"],
             ["✨", "Чанарын баталгаа", "100% жинхэнэ бүтээгдэхүүн"],
-            ["💳", "Найдвартай төлбөр", "QPay болон картаар"],
+            ["💵", "Хялбар төлбөр", "Хүргэлтийн үед бэлнээр"],
           ].map(([icon, title, desc]) => (
             <div key={title} className="p-6 rounded-2xl border border-border">
               <div className="text-3xl mb-3">{icon}</div>
@@ -97,6 +177,14 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Түгээмэл асуултууд */}
+      <section className="mx-auto max-w-3xl px-4 pb-20">
+        <h2 className="font-serif text-3xl font-bold mb-8 text-center">
+          Түгээмэл асуултууд
+        </h2>
+        <Faq />
       </section>
     </div>
   );

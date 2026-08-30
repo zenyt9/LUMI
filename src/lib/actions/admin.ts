@@ -20,6 +20,7 @@ const productSchema = z.object({
   name: z.string().min(2, "Нэр оруулна уу"),
   description: z.string().min(5, "Тайлбар оруулна уу"),
   price: z.coerce.number().int().positive("Үнэ эерэг тоо байх ёстой"),
+  oldPrice: z.coerce.number().int().positive().optional(),
   stock: z.coerce.number().int().min(0, "Үлдэгдэл 0-ээс багагүй"),
   categoryId: z.string().min(1, "Ангилал сонгоно уу"),
   brandId: z.string().optional(),
@@ -45,6 +46,7 @@ export async function createProduct(
     name: formData.get("name"),
     description: formData.get("description"),
     price: formData.get("price"),
+    oldPrice: formData.get("oldPrice") || undefined,
     stock: formData.get("stock"),
     categoryId: formData.get("categoryId"),
     featured: formData.get("featured") === "on",
@@ -55,6 +57,9 @@ export async function createProduct(
     return { error: parsed.error.issues[0].message };
   }
   const data = parsed.data;
+  // Хуучин үнэ зөвхөн одоогийн үнээс их бол хямдрал гэж хадгална
+  const oldPrice =
+    data.oldPrice && data.oldPrice > data.price ? data.oldPrice : null;
 
   // Давхцахгүй slug үүсгэх
   const base = slugify(data.name) || "buteegdehuun";
@@ -85,6 +90,7 @@ export async function createProduct(
       slug,
       description: data.description,
       price: data.price,
+      oldPrice,
       stock: data.stock,
       categoryId: data.categoryId,
       brandId: readBrandId(formData),
@@ -109,6 +115,7 @@ export async function updateProduct(
     name: formData.get("name"),
     description: formData.get("description"),
     price: formData.get("price"),
+    oldPrice: formData.get("oldPrice") || undefined,
     stock: formData.get("stock"),
     categoryId: formData.get("categoryId"),
     featured: formData.get("featured") === "on",
@@ -119,6 +126,8 @@ export async function updateProduct(
     return { error: parsed.error.issues[0].message };
   }
   const data = parsed.data;
+  const oldPrice =
+    data.oldPrice && data.oldPrice > data.price ? data.oldPrice : null;
 
   // Зураг: шинэ файл upload хийсэн бол хадгална, эсвэл URL өгсөн бол солино,
   // аль аль нь байхгүй бол хуучин зургийг хэвээр үлдээнэ.
@@ -140,6 +149,7 @@ export async function updateProduct(
       name: data.name,
       description: data.description,
       price: data.price,
+      oldPrice,
       stock: data.stock,
       categoryId: data.categoryId,
       brandId: readBrandId(formData),

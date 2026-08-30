@@ -69,8 +69,20 @@ export default async function ProductDetailPage({
           <h1 className="font-serif text-3xl sm:text-4xl font-bold mb-4">
             {product.name}
           </h1>
-          <div className="font-serif text-3xl font-bold text-blush-dark mb-6">
-            {formatPrice(product.price)}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="font-serif text-3xl font-bold text-blush-dark">
+              {formatPrice(product.price)}
+            </span>
+            {product.oldPrice && product.oldPrice > product.price && (
+              <>
+                <span className="text-lg text-muted line-through">
+                  {formatPrice(product.oldPrice)}
+                </span>
+                <span className="bg-blush text-white text-sm font-semibold px-2.5 py-1 rounded-full">
+                  -{Math.round((1 - product.price / product.oldPrice) * 100)}%
+                </span>
+              </>
+            )}
           </div>
           <p className="text-muted leading-relaxed mb-6">
             {product.description}

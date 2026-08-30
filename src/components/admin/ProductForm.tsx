@@ -12,6 +12,7 @@ type ProductDefaults = {
   name: string;
   description: string;
   price: number;
+  oldPrice?: number | null;
   stock: number;
   categoryId: string;
   brandId?: string | null;
@@ -75,6 +76,15 @@ export function ProductForm({ action, categories, brands, product, submitLabel }
           defaultValue={product?.stock?.toString()}
         />
       </div>
+
+      <Field
+        label="Хуучин үнэ (₮) — хямдрал харуулах бол"
+        name="oldPrice"
+        type="number"
+        defaultValue={product?.oldPrice?.toString() ?? ""}
+        required={false}
+        placeholder="Одоогийн үнээс их байх ёстой"
+      />
 
       <label className="block">
         <span className="text-sm font-medium block mb-1.5">Ангилал</span>
