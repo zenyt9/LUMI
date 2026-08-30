@@ -195,16 +195,23 @@ export async function updateOrderStatus(orderId: string, status: string) {
     throw new Error("Буруу төлөв");
   }
 
-  // Хүргэгдсэн болоход урамшууллын оноог нэг удаа олгоно
   await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id: orderId },
-      select: { userId: true, total: true, pointsEarned: true, status: true },
+      select: {
+        userId: true,
+        total: true,
+        pointsEarned: true,
+        status: true,
+        items: { select: { productId: true, quantity: true } },
+      },
     });
     if (!order) throw new Error("Захиалга олдсонгүй");
+    const prevStatus = order.status;
 
     await tx.order.update({ where: { id: orderId }, data: { status } });
 
+    // Хүргэгдсэн болоход урамшууллын оноог нэг удаа олгоно
     if (status === "DELIVERED" && order.pointsEarned === 0) {
       const earned = pointsForAmount(order.total);
       if (earned > 0) {
@@ -218,9 +225,31 @@ export async function updateOrderStatus(orderId: string, status: string) {
         });
       }
     }
+
+    // Цуцлагдвал (өмнө нь цуцлагдаагүй байсан): үлдэгдлийг сэргээж, олгосон оноог буцаана
+    if (status === "CANCELLED" && prevStatus !== "CANCELLED") {
+      for (const it of order.items) {
+        await tx.product.updateMany({
+          where: { id: it.productId },
+          data: { stock: { increment: it.quantity } },
+        });
+      }
+      if (order.pointsEarned > 0) {
+        await tx.user.update({
+          where: { id: order.userId },
+          data: { points: { decrement: order.pointsEarned } },
+        });
+        await tx.order.update({
+          where: { id: orderId },
+          data: { pointsEarned: 0 },
+        });
+      }
+    }
   });
 
   revalidatePath("/admin/orders");
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
   revalidatePath(`/orders/${orderId}`);
   revalidatePath("/profile");
 }
