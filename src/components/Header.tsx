@@ -1,33 +1,44 @@
 import Link from "next/link";
 import { User, LayoutDashboard } from "lucide-react";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { CartBadge } from "./CartBadge";
+import { CategoryMenu } from "./CategoryMenu";
 import { logout } from "@/lib/actions/auth";
 
 export async function Header() {
   const session = await auth();
   const user = session?.user;
 
+  const categories = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, slug: true },
+  });
+
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur border-b border-border">
       <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between gap-4">
-        {/* Лого */}
-        <Link href="/" className="flex items-baseline gap-1">
-          <span className="font-serif text-2xl font-bold tracking-wide text-foreground">
-            LumiBeauty
-          </span>
-          <span className="text-blush text-lg">✦</span>
-        </Link>
+        {/* Зүүн тал: лого + цэс */}
+        <div className="flex items-center gap-8">
+          {/* Лого */}
+          <Link href="/" className="flex items-baseline gap-1">
+            <span className="font-serif text-2xl font-bold tracking-wide text-foreground">
+              LumiBeauty
+            </span>
+            <span className="text-blush text-lg">✦</span>
+          </Link>
 
-        {/* Цэс */}
-        <nav className="hidden sm:flex items-center gap-7 text-sm font-medium">
-          <Link href="/" className="hover:text-blush transition-colors">
-            Нүүр
-          </Link>
-          <Link href="/products" className="hover:text-blush transition-colors">
-            Бүтээгдэхүүн
-          </Link>
-        </nav>
+          {/* Цэс */}
+          <nav className="hidden sm:flex items-center gap-7 text-sm font-medium">
+            <Link href="/" className="hover:text-blush transition-colors">
+              Нүүр
+            </Link>
+            <CategoryMenu categories={categories} />
+            <Link href="/products" className="hover:text-blush transition-colors">
+              Бүтээгдэхүүн
+            </Link>
+          </nav>
+        </div>
 
         {/* Баруун тал */}
         <div className="flex items-center gap-2">
