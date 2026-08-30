@@ -2,14 +2,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, cn } from "@/lib/utils";
 import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
 
-export default async function AdminProductsPage() {
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { category: true },
-  });
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+
+  const [products, categories, totalCount] = await Promise.all([
+    prisma.product.findMany({
+      where: category ? { category: { slug: category } } : undefined,
+      orderBy: { createdAt: "desc" },
+      include: { category: true },
+    }),
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      include: { _count: { select: { products: true } } },
+    }),
+    prisma.product.count(),
+  ]);
 
   return (
     <div>
@@ -21,6 +35,35 @@ export default async function AdminProductsPage() {
         >
           <Plus className="w-4 h-4" /> Шинэ бараа
         </Link>
+      </div>
+
+      {/* Ангиллаар шүүх цэс */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <Link
+          href="/admin/products"
+          className={cn(
+            "px-4 py-1.5 rounded-full text-sm border transition-colors",
+            !category
+              ? "bg-blush text-white border-blush"
+              : "bg-surface border-border hover:border-blush",
+          )}
+        >
+          Бүгд ({totalCount})
+        </Link>
+        {categories.map((c) => (
+          <Link
+            key={c.id}
+            href={`/admin/products?category=${c.slug}`}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-sm border transition-colors",
+              category === c.slug
+                ? "bg-blush text-white border-blush"
+                : "bg-surface border-border hover:border-blush",
+            )}
+          >
+            {c.name} ({c._count.products})
+          </Link>
+        ))}
       </div>
 
       <div className="bg-surface border border-border rounded-2xl overflow-hidden">
