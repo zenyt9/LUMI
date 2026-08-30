@@ -2,6 +2,7 @@ import Link from "next/link";
 import { User, LayoutDashboard } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getTier } from "@/lib/loyalty";
 import { CartBadge } from "./CartBadge";
 import { CategoryMenu } from "./CategoryMenu";
 import { BrandMenu } from "./BrandMenu";
@@ -12,7 +13,7 @@ export async function Header() {
   const session = await auth();
   const user = session?.user;
 
-  const [categories, brands] = await Promise.all([
+  const [categories, brands, dbUser] = await Promise.all([
     prisma.category.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
@@ -21,7 +22,15 @@ export async function Header() {
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
     }),
+    user?.id
+      ? prisma.user.findUnique({
+          where: { id: user.id },
+          select: { points: true },
+        })
+      : null,
   ]);
+
+  const tier = dbUser ? getTier(dbUser.points) : null;
 
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur border-b border-border">
@@ -55,6 +64,16 @@ export async function Header() {
 
           {user ? (
             <div className="flex items-center gap-1">
+              {tier && (
+                <Link
+                  href="/profile"
+                  title={`${tier.name} түвшин · ${dbUser!.points} оноо`}
+                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blush-soft/50 border border-border text-xs font-medium hover:border-blush transition-colors"
+                >
+                  <span>{tier.emoji}</span>
+                  <span>{dbUser!.points}</span>
+                </Link>
+              )}
               {user.role === "ADMIN" && (
                 <Link
                   href="/admin"
