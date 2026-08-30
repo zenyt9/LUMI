@@ -29,7 +29,7 @@ export default async function HomePage() {
           </h1>
           <p className="text-muted max-w-xl mx-auto mb-8 text-lg">
             Арьс арчилгаа, нүүр будалт, үнэртэн — чанартай бүтээгдэхүүнийг нэг
-            дороос. Lumi-тэй хамт өөрийгөө хайрла.
+            дороос. LumiBeauty-тэй хамт өөрийгөө хайрла.
           </p>
           <Link
             href="/products"

@@ -14,7 +14,7 @@ export async function Header() {
         {/* Лого */}
         <Link href="/" className="flex items-baseline gap-1">
           <span className="font-serif text-2xl font-bold tracking-wide text-foreground">
-            Lumi
+            LumiBeauty
           </span>
           <span className="text-blush text-lg">✦</span>
         </Link>

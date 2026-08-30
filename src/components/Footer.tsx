@@ -6,7 +6,7 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-12 grid gap-8 sm:grid-cols-3">
         <div>
           <div className="font-serif text-xl font-bold mb-2">
-            Lumi <span className="text-blush">✦</span>
+            LumiBeauty <span className="text-blush">✦</span>
           </div>
           <p className="text-sm text-muted leading-relaxed">
             Танай гоо сайхны өдөр тутмын хэрэгцээг хангах чанартай
@@ -45,7 +45,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border py-4 text-center text-xs text-muted">
-        © {new Date().getFullYear()} Lumi. Бүх эрх хуулиар хамгаалагдсан.
+        © {new Date().getFullYear()} LumiBeauty. Бүх эрх хуулиар хамгаалагдсан.
       </div>
     </footer>
   );

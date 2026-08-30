@@ -25,7 +25,7 @@ function RegisterForm() {
     <div className="mx-auto max-w-md px-4 py-16">
       <div className="text-center mb-8">
         <h1 className="font-serif text-3xl font-bold">Бүртгүүлэх</h1>
-        <p className="text-muted mt-2">Lumi-д тавтай морил</p>
+        <p className="text-muted mt-2">LumiBeauty-д тавтай морил</p>
       </div>
 
       <form action={formAction} className="space-y-4">

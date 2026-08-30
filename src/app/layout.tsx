@@ -15,9 +15,9 @@ const serif = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Lumi — Гоо сайхны дэлгүүр",
+  title: "LumiBeauty — Гоо сайхны дэлгүүр",
   description:
-    "Lumi — арьс арчилгаа, нүүр будалт, үнэртэн зэрэг гоо сайхны бүтээгдэхүүний онлайн дэлгүүр.",
+    "LumiBeauty — арьс арчилгаа, нүүр будалт, үнэртэн зэрэг гоо сайхны бүтээгдэхүүний онлайн дэлгүүр.",
 };
 
 export default function RootLayout({
