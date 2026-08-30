@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, Package, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Package, ClipboardList, Tag } from "lucide-react";
 import { auth } from "@/auth";
 
 export default async function AdminLayout({
@@ -25,6 +25,9 @@ export default async function AdminLayout({
             </AdminLink>
             <AdminLink href="/admin/products" icon={<Package className="w-4 h-4" />}>
               Бүтээгдэхүүн
+            </AdminLink>
+            <AdminLink href="/admin/brands" icon={<Tag className="w-4 h-4" />}>
+              Брэнд
             </AdminLink>
             <AdminLink href="/admin/orders" icon={<ClipboardList className="w-4 h-4" />}>
               Захиалгууд

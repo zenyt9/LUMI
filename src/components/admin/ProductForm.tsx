@@ -6,6 +6,7 @@ import { ImagePlus } from "lucide-react";
 import type { ProductFormState } from "@/lib/actions/admin";
 
 type Category = { id: string; name: string };
+type Brand = { id: string; name: string };
 
 type ProductDefaults = {
   name: string;
@@ -13,6 +14,7 @@ type ProductDefaults = {
   price: number;
   stock: number;
   categoryId: string;
+  brandId?: string | null;
   featured: boolean;
   image: string;
 };
@@ -23,11 +25,12 @@ type Props = {
     formData: FormData,
   ) => Promise<ProductFormState>;
   categories: Category[];
+  brands: Brand[];
   product?: ProductDefaults;
   submitLabel: string;
 };
 
-export function ProductForm({ action, categories, product, submitLabel }: Props) {
+export function ProductForm({ action, categories, brands, product, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState<ProductFormState, FormData>(
     action,
     undefined,
@@ -87,6 +90,24 @@ export function ProductForm({ action, categories, product, submitLabel }: Props)
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="block">
+        <span className="text-sm font-medium block mb-1.5">
+          Брэнд <span className="text-muted font-normal">(заавал биш)</span>
+        </span>
+        <select
+          name="brandId"
+          defaultValue={product?.brandId ?? ""}
+          className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-blush/40"
+        >
+          <option value="">— Брэндгүй —</option>
+          {brands.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
             </option>
           ))}
         </select>

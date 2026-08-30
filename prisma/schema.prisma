@@ -19,6 +19,14 @@ model Category {
   products Product[]
 }
 
+model Brand {
+  id        String    @id @default(cuid())
+  name      String // жишээ: "The Ordinary"
+  slug      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
 model Product {
   id          String      @id @default(cuid())
   name        String
@@ -30,6 +38,8 @@ model Product {
   featured    Boolean     @default(false)
   categoryId  String
   category    Category    @relation(fields: [categoryId], references: [id])
+  brandId     String?
+  brand       Brand?      @relation(fields: [brandId], references: [id])
   orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
 }

@@ -2,17 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Category = { id: string; name: string; slug: string };
 
 type Props = {
   categories: Category[];
-  current: { q?: string; category?: string; sort?: string };
+  current: { q?: string; category?: string; brand?: string; sort?: string };
+  activeBrandName?: string;
 };
 
-export function ProductFilters({ categories, current }: Props) {
+export function ProductFilters({ categories, current, activeBrandName }: Props) {
   const router = useRouter();
   const [q, setQ] = useState(current.q ?? "");
 
@@ -21,6 +22,7 @@ export function ProductFilters({ categories, current }: Props) {
     const merged = { ...current, ...next };
     if (merged.q) params.set("q", merged.q);
     if (merged.category) params.set("category", merged.category);
+    if (merged.brand) params.set("brand", merged.brand);
     if (merged.sort) params.set("sort", merged.sort);
     const qs = params.toString();
     return qs ? `/products?${qs}` : "/products";
@@ -44,6 +46,22 @@ export function ProductFilters({ categories, current }: Props) {
           className="w-full pl-10 pr-4 py-2.5 rounded-full border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-blush/40"
         />
       </form>
+
+      {/* Идэвхтэй брэнд шүүлт */}
+      {current.brand && (
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-blush text-white">
+            Брэнд: {activeBrandName ?? current.brand}
+            <button
+              onClick={() => router.push(buildUrl({ brand: undefined }))}
+              aria-label="Брэнд шүүлт цуцлах"
+              className="hover:opacity-80"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </span>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 justify-between">
         {/* Ангилал шүүлт */}

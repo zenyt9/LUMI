@@ -5,10 +5,18 @@ import Link from "next/link";
 import { Menu, X, ChevronDown } from "lucide-react";
 
 type Category = { id: string; name: string; slug: string };
+type Brand = { id: string; name: string; slug: string };
 
-export function MobileMenu({ categories }: { categories: Category[] }) {
+export function MobileMenu({
+  categories,
+  brands,
+}: {
+  categories: Category[];
+  brands: Brand[];
+}) {
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
 
   // Меню нээлттэй үед арын гүйлтийг түгжих
   useEffect(() => {
@@ -84,6 +92,36 @@ export function MobileMenu({ categories }: { categories: Category[] }) {
                     </Link>
                   ))}
                 </div>
+              )}
+
+              {/* Брэнд (задардаг) — брэнд байгаа үед */}
+              {brands.length > 0 && (
+                <>
+                  <button
+                    onClick={() => setBrandOpen((o) => !o)}
+                    className="flex items-center justify-between py-3 px-3 rounded-xl hover:bg-blush-soft/40 hover:text-blush transition-colors"
+                    aria-expanded={brandOpen}
+                  >
+                    Брэнд
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${brandOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {brandOpen && (
+                    <div className="flex flex-col pl-3 border-l border-border ml-3">
+                      {brands.map((b) => (
+                        <Link
+                          key={b.id}
+                          href={`/products?brand=${b.slug}`}
+                          onClick={close}
+                          className="py-2.5 px-3 rounded-xl text-muted hover:text-blush hover:bg-blush-soft/40 transition-colors"
+                        >
+                          {b.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </nav>
           </div>

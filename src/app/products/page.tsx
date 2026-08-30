@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 type SearchParams = {
   q?: string;
   category?: string;
+  brand?: string;
   sort?: string;
 };
 
@@ -14,30 +15,35 @@ export default async function ProductsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { q, category, sort } = await searchParams;
+  const { q, category, brand, sort } = await searchParams;
 
   const where: Prisma.ProductWhereInput = {};
   if (q) where.name = { contains: q };
   if (category) where.category = { slug: category };
+  if (brand) where.brand = { slug: brand };
 
   let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
   if (sort === "price-asc") orderBy = { price: "asc" };
   else if (sort === "price-desc") orderBy = { price: "desc" };
   else if (sort === "name") orderBy = { name: "asc" };
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, activeBrand] = await Promise.all([
     prisma.product.findMany({ where, orderBy }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
+    brand ? prisma.brand.findUnique({ where: { slug: brand } }) : null,
   ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-serif text-3xl font-bold mb-2">Бүтээгдэхүүн</h1>
+      <h1 className="font-serif text-3xl font-bold mb-2">
+        {activeBrand ? activeBrand.name : "Бүтээгдэхүүн"}
+      </h1>
       <p className="text-muted mb-8">Нийт {products.length} бүтээгдэхүүн</p>
 
       <ProductFilters
         categories={categories}
-        current={{ q, category, sort }}
+        current={{ q, category, brand, sort }}
+        activeBrandName={activeBrand?.name}
       />
 
       {products.length === 0 ? (

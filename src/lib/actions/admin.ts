@@ -22,9 +22,16 @@ const productSchema = z.object({
   price: z.coerce.number().int().positive("Үнэ эерэг тоо байх ёстой"),
   stock: z.coerce.number().int().min(0, "Үлдэгдэл 0-ээс багагүй"),
   categoryId: z.string().min(1, "Ангилал сонгоно уу"),
+  brandId: z.string().optional(),
   featured: z.boolean().optional(),
   image: z.string().optional(),
 });
+
+// formData-аас brandId авах туслах (хоосон бол null)
+function readBrandId(formData: FormData): string | null {
+  const v = formData.get("brandId");
+  return typeof v === "string" && v.trim().length > 0 ? v : null;
+}
 
 export type ProductFormState = { error?: string } | undefined;
 
@@ -80,6 +87,7 @@ export async function createProduct(
       price: data.price,
       stock: data.stock,
       categoryId: data.categoryId,
+      brandId: readBrandId(formData),
       featured: data.featured ?? false,
       image,
     },
@@ -134,6 +142,7 @@ export async function updateProduct(
       price: data.price,
       stock: data.stock,
       categoryId: data.categoryId,
+      brandId: readBrandId(formData),
       featured: data.featured ?? false,
       ...(newImage ? { image: newImage } : {}),
     },
@@ -177,4 +186,46 @@ export async function updateOrderStatus(orderId: string, status: string) {
   await prisma.order.update({ where: { id: orderId }, data: { status } });
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);
+}
+
+// ===== Брэнд =====
+
+export type BrandFormState = { error?: string; success?: boolean } | undefined;
+
+export async function createBrand(
+  _prev: BrandFormState,
+  formData: FormData,
+): Promise<BrandFormState> {
+  await requireAdmin();
+
+  const name = (formData.get("name") as string | null)?.trim() ?? "";
+  if (name.length < 2) {
+    return { error: "Брэндийн нэр дор хаяж 2 тэмдэгт байх ёстой" };
+  }
+
+  // Давхцахгүй slug үүсгэх
+  const base = slugify(name) || "brand";
+  let slug = base;
+  let n = 1;
+  while (await prisma.brand.findUnique({ where: { slug } })) {
+    slug = `${base}-${n++}`;
+  }
+
+  await prisma.brand.create({ data: { name, slug } });
+
+  revalidatePath("/admin/brands");
+  revalidatePath("/products");
+  return { success: true };
+}
+
+export async function deleteBrand(id: string) {
+  await requireAdmin();
+  // Барааны brandId-г null болгож, дараа нь брэндийг устгана
+  await prisma.product.updateMany({
+    where: { brandId: id },
+    data: { brandId: null },
+  });
+  await prisma.brand.delete({ where: { id } });
+  revalidatePath("/admin/brands");
+  revalidatePath("/products");
 }

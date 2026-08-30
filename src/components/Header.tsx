@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CartBadge } from "./CartBadge";
 import { CategoryMenu } from "./CategoryMenu";
+import { BrandMenu } from "./BrandMenu";
 import { MobileMenu } from "./MobileMenu";
 import { logout } from "@/lib/actions/auth";
 
@@ -11,10 +12,16 @@ export async function Header() {
   const session = await auth();
   const user = session?.user;
 
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, slug: true },
-  });
+  const [categories, brands] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, slug: true },
+    }),
+    prisma.brand.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, slug: true },
+    }),
+  ]);
 
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur border-b border-border">
@@ -35,6 +42,7 @@ export async function Header() {
               Нүүр
             </Link>
             <CategoryMenu categories={categories} />
+            {brands.length > 0 && <BrandMenu brands={brands} />}
             <Link href="/products" className="hover:text-blush transition-colors">
               Бүтээгдэхүүн
             </Link>
@@ -82,7 +90,7 @@ export async function Header() {
           )}
 
           {/* Гар утасны цэс */}
-          <MobileMenu categories={categories} />
+          <MobileMenu categories={categories} brands={brands} />
         </div>
       </div>
     </header>
