@@ -12,7 +12,7 @@ export default async function CheckoutPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { points: true, phone: true },
+    select: { points: true, pointsBalance: true, phone: true },
   });
   const tier = getTier(dbUser?.points ?? 0);
 
@@ -25,6 +25,7 @@ export default async function CheckoutPage() {
         defaultName={session.user.name ?? ""}
         defaultPhone={dbUser?.phone ?? ""}
         tier={tier}
+        pointsBalance={dbUser?.pointsBalance ?? 0}
       />
     </div>
   );

@@ -13,6 +13,7 @@ const checkoutSchema = z.object({
     .regex(/^\d{8}$/, "Утасны дугаар 8 оронтой байх ёстой"),
   address: z.string().min(5, "Хүргэлтийн хаягаа дэлгэрэнгүй оруулна уу"),
   note: z.string().optional(),
+  pointsToRedeem: z.number().int().min(0).optional(),
   items: z
     .array(
       z.object({
@@ -41,7 +42,7 @@ export async function createOrder(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
   }
-  const { fullName, phone, address, note, items } = parsed.data;
+  const { fullName, phone, address, note, items, pointsToRedeem } = parsed.data;
 
   // Барааг өгөгдлийн сангаас дахин уншиж үнэ/үлдэгдлийг баталгаажуулна
   const products = await prisma.product.findMany({
@@ -76,15 +77,16 @@ export async function createOrder(
     });
   }
 
-  // Хэрэглэгчийн түвшингээр хөнгөлөлт/хүргэлтийг сервер талд баталгаажуулан тооцно
+  // Хэрэглэгчийн түвшин + зарцуулах оноог сервер талд баталгаажуулан тооцно
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { points: true },
+    select: { points: true, pointsBalance: true },
   });
   const tier = getTier(dbUser?.points ?? 0);
-  const pricing = computePricing(subtotal, tier);
+  const balance = dbUser?.pointsBalance ?? 0;
+  const pricing = computePricing(subtotal, tier, pointsToRedeem ?? 0, balance);
 
-  // Захиалга үүсгэх + үлдэгдэл хорогдуулах (нэг гүйлгээнд)
+  // Захиалга үүсгэх + үлдэгдэл хорогдуулах + оноо зарцуулах (нэг гүйлгээнд)
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
       data: {
@@ -92,6 +94,8 @@ export async function createOrder(
         status: "PENDING",
         total: pricing.total,
         discount: pricing.discount,
+        pointsRedeemed: pricing.pointsRedeemed,
+        pointsDiscount: pricing.pointsDiscount,
         shipping: pricing.shipping,
         fullName,
         phone,
@@ -105,6 +109,14 @@ export async function createOrder(
       await tx.product.update({
         where: { id: item.productId },
         data: { stock: { decrement: item.quantity } },
+      });
+    }
+
+    // Зарцуулсан оноог үлдэгдлээс хасна
+    if (pricing.pointsRedeemed > 0) {
+      await tx.user.update({
+        where: { id: session.user.id },
+        data: { pointsBalance: { decrement: pricing.pointsRedeemed } },
       });
     }
 
@@ -126,6 +138,7 @@ export async function cancelOwnOrder(
     select: {
       userId: true,
       status: true,
+      pointsRedeemed: true,
       items: { select: { productId: true, quantity: true } },
     },
   });
@@ -149,6 +162,13 @@ export async function cancelOwnOrder(
       await tx.product.updateMany({
         where: { id: it.productId },
         data: { stock: { increment: it.quantity } },
+      });
+    }
+    // Зарцуулсан оноог буцаана
+    if (order.pointsRedeemed > 0) {
+      await tx.user.update({
+        where: { id: order.userId },
+        data: { pointsBalance: { increment: order.pointsRedeemed } },
       });
     }
   });

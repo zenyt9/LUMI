@@ -132,6 +132,12 @@ export default async function OrderDetailPage({
               <span>−{formatPrice(order.discount)}</span>
             </div>
           )}
+          {order.pointsDiscount > 0 && (
+            <div className="flex justify-between mb-1 text-green-400">
+              <span>Оноо ({order.pointsRedeemed} оноо)</span>
+              <span>−{formatPrice(order.pointsDiscount)}</span>
+            </div>
+          )}
           <div className="flex justify-between mb-1">
             <span className="text-muted">Хүргэлт</span>
             <span>

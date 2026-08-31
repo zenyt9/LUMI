@@ -202,6 +202,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
         userId: true,
         total: true,
         pointsEarned: true,
+        pointsRedeemed: true,
         status: true,
         items: { select: { productId: true, quantity: true } },
       },
@@ -211,7 +212,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
 
     await tx.order.update({ where: { id: orderId }, data: { status } });
 
-    // Хүргэгдсэн болоход урамшууллын оноог нэг удаа олгоно
+    // Хүргэгдсэн болоход оноог нэг удаа олгоно (нийт + зарцуулах үлдэгдэл хоёуланд)
     if (status === "DELIVERED" && order.pointsEarned === 0) {
       const earned = pointsForAmount(order.total);
       if (earned > 0) {
@@ -221,12 +222,15 @@ export async function updateOrderStatus(orderId: string, status: string) {
         });
         await tx.user.update({
           where: { id: order.userId },
-          data: { points: { increment: earned } },
+          data: {
+            points: { increment: earned },
+            pointsBalance: { increment: earned },
+          },
         });
       }
     }
 
-    // Цуцлагдвал (өмнө нь цуцлагдаагүй байсан): үлдэгдлийг сэргээж, олгосон оноог буцаана
+    // Цуцлагдвал (өмнө нь цуцлагдаагүй байсан): үлдэгдэл сэргээх, оноог буцаах
     if (status === "CANCELLED" && prevStatus !== "CANCELLED") {
       for (const it of order.items) {
         await tx.product.updateMany({
@@ -234,16 +238,30 @@ export async function updateOrderStatus(orderId: string, status: string) {
           data: { stock: { increment: it.quantity } },
         });
       }
+      // Олгосон оноог буцаах (нийт болон үлдэгдлээс), зарцуулсан оноог үлдэгдэлд сэргээх
+      const balanceDelta = order.pointsRedeemed - order.pointsEarned;
       if (order.pointsEarned > 0) {
         await tx.user.update({
           where: { id: order.userId },
           data: { points: { decrement: order.pointsEarned } },
         });
-        await tx.order.update({
-          where: { id: orderId },
-          data: { pointsEarned: 0 },
+      }
+      if (balanceDelta !== 0) {
+        // Одоогийн үлдэгдлийг уншиж, 0-ээс доош болгохгүйгээр тохируулна
+        const u = await tx.user.findUnique({
+          where: { id: order.userId },
+          select: { pointsBalance: true },
+        });
+        const next = Math.max(0, (u?.pointsBalance ?? 0) + balanceDelta);
+        await tx.user.update({
+          where: { id: order.userId },
+          data: { pointsBalance: next },
         });
       }
+      await tx.order.update({
+        where: { id: orderId },
+        data: { pointsEarned: 0, pointsRedeemed: 0 },
+      });
     }
   });
 

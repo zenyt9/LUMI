@@ -10,6 +10,7 @@ import {
   getNextTier,
   tierProgress,
   pointsForAmount,
+  POINT_VALUE,
 } from "@/lib/loyalty";
 
 export default async function ProfilePage() {
@@ -21,7 +22,7 @@ export default async function ProfilePage() {
   const [user, orders] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { name: true, email: true, points: true },
+      select: { name: true, email: true, points: true, pointsBalance: true },
     }),
     prisma.order.findMany({
       where: { userId: session.user.id },
@@ -31,6 +32,7 @@ export default async function ProfilePage() {
   ]);
 
   const points = user?.points ?? 0;
+  const pointsBalance = user?.pointsBalance ?? 0;
   const tier = getTier(points);
   const nextTier = getNextTier(points);
   const progress = tierProgress(points);
@@ -76,10 +78,16 @@ export default async function ProfilePage() {
       <div className="bg-gradient-to-br from-blush-soft/60 via-surface to-surface border border-border rounded-2xl p-6 mb-6">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
           <div>
-            <p className="text-sm text-muted mb-1">Таны урамшууллын оноо</p>
+            <p className="text-sm text-muted mb-1">Зарцуулах боломжтой оноо</p>
             <p className="font-serif text-4xl font-bold text-blush-dark">
-              {points.toLocaleString("mn-MN")}{" "}
+              {pointsBalance.toLocaleString("mn-MN")}{" "}
               <span className="text-lg text-muted">оноо</span>
+            </p>
+            <p className="text-xs text-muted mt-1">
+              ≈ {formatPrice(pointsBalance * POINT_VALUE)} хямдрал ·{" "}
+              <Link href="/checkout" className="text-blush hover:underline">
+                захиалгад ашиглах
+              </Link>
             </p>
             {pendingPoints > 0 && (
               <p className="text-xs text-muted mt-1">

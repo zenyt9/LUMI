@@ -55,7 +55,8 @@ model User {
   email        String     @unique
   passwordHash String
   role         String     @default("USER") // "USER" | "ADMIN"
-  points       Int        @default(0) // урамшууллын оноо (түвшин тодорхойлно)
+  points       Int        @default(0) // нийт цуглуулсан оноо (ТҮВШИН тодорхойлно, буурдаггүй)
+  pointsBalance Int       @default(0) // зарцуулах боломжтой оноо (хямдралд ашиглахад буурна)
   phone        String? // холбоо барих утас (checkout-д урьдчилж бөглөнө)
   orders       Order[]
   reviews      Review[]
@@ -93,7 +94,9 @@ model Order {
   user         User        @relation(fields: [userId], references: [id])
   status       String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED
   total        Int // эцсийн төлбөр (барааны дүн - хөнгөлөлт + хүргэлт)
-  discount     Int         @default(0) // түвшингийн хөнгөлөлт
+  discount      Int        @default(0) // түвшингийн хөнгөлөлт
+  pointsRedeemed Int       @default(0) // зарцуулсан оноо (цуцлахад буцаана)
+  pointsDiscount Int       @default(0) // оноогоор хассан дүн (₮)
   shipping     Int         @default(0) // хүргэлтийн хураамж
   pointsEarned Int         @default(0) // хүргэгдсэн үед олгосон оноо (давхар олгохгүйн тулд)
   // Хүргэлтийн мэдээлэл

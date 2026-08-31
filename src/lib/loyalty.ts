@@ -91,22 +91,56 @@ export function pointsForAmount(amount: number): number {
   return Math.floor(amount / TOGROG_PER_POINT);
 }
 
+// Оноо зарцуулах: 1 оноо = 100₮. Захиалгын (түвшингийн хөнгөлөлтийн дараах)
+// дүнгийн дээд тал нь 50%-ийг оноогоор төлж болно.
+export const POINT_VALUE = 100;
+export const REDEEM_MAX_RATIO = 0.5;
+
+/** Тухайн захиалгад ашиглаж болох оноо (үлдэгдэл ба 50% дээд хязгаараар) */
+export function maxRedeemablePoints(
+  subtotal: number,
+  tier: Tier,
+  balance: number,
+): number {
+  const afterTier = Math.max(0, subtotal - Math.round(subtotal * tier.discountRate));
+  const capByOrder = Math.floor((afterTier * REDEEM_MAX_RATIO) / POINT_VALUE);
+  return Math.max(0, Math.min(balance, capByOrder));
+}
+
 export type OrderPricing = {
   subtotal: number;
-  discount: number;
+  discount: number; // түвшингийн хөнгөлөлт (₮)
+  pointsRedeemed: number; // зарцуулсан оноо
+  pointsDiscount: number; // оноогоор хассан дүн (₮)
   shipping: number;
   total: number;
 };
 
 /**
- * Барааны дүн + түвшингээс захиалгын эцсийн үнийг тооцно.
+ * Барааны дүн + түвшин + зарцуулах оноогоор захиалгын эцсийн үнийг тооцно.
  * Сервер (createOrder) болон клиент (CheckoutForm) ижил логик ашиглана.
+ * pointsToRedeem-ийг дотор нь хязгаарлана (хэт их өгсөн ч аюулгүй).
  */
-export function computePricing(subtotal: number, tier: Tier): OrderPricing {
+export function computePricing(
+  subtotal: number,
+  tier: Tier,
+  pointsToRedeem = 0,
+  balance = 0,
+): OrderPricing {
   const discount = Math.round(subtotal * tier.discountRate);
-  const afterDiscount = Math.max(0, subtotal - discount);
-  const freeShip = tier.freeShipping || afterDiscount >= FREE_SHIPPING_THRESHOLD;
+  const afterTier = Math.max(0, subtotal - discount);
+
+  const capByOrder = Math.floor((afterTier * REDEEM_MAX_RATIO) / POINT_VALUE);
+  const pointsRedeemed = Math.max(
+    0,
+    Math.min(pointsToRedeem, balance, capByOrder),
+  );
+  const pointsDiscount = pointsRedeemed * POINT_VALUE;
+  const afterPoints = Math.max(0, afterTier - pointsDiscount);
+
+  const freeShip = tier.freeShipping || afterTier >= FREE_SHIPPING_THRESHOLD;
   const shipping = freeShip ? 0 : SHIPPING_FEE;
-  const total = afterDiscount + shipping;
-  return { subtotal, discount, shipping, total };
+  const total = afterPoints + shipping;
+
+  return { subtotal, discount, pointsRedeemed, pointsDiscount, shipping, total };
 }

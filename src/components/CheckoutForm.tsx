@@ -6,22 +6,31 @@ import Image from "next/image";
 import { useCart } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { createOrder } from "@/lib/actions/order";
-import { computePricing, pointsForAmount, type Tier } from "@/lib/loyalty";
+import {
+  computePricing,
+  pointsForAmount,
+  maxRedeemablePoints,
+  POINT_VALUE,
+  type Tier,
+} from "@/lib/loyalty";
 
 export function CheckoutForm({
   defaultName,
   defaultPhone = "",
   tier,
+  pointsBalance = 0,
 }: {
   defaultName: string;
   defaultPhone?: string;
   tier: Tier;
+  pointsBalance?: number;
 }) {
   const router = useRouter();
   const { items, totalPrice, clear } = useCart();
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [usePoints, setUsePoints] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -40,8 +49,11 @@ export function CheckoutForm({
   }
 
   const subtotal = totalPrice();
-  const pricing = computePricing(subtotal, tier);
+  const maxRedeem = maxRedeemablePoints(subtotal, tier, pointsBalance);
+  const pointsToRedeem = usePoints ? maxRedeem : 0;
+  const pricing = computePricing(subtotal, tier, pointsToRedeem, pointsBalance);
   const earnPoints = pointsForAmount(pricing.total);
+  const canRedeem = maxRedeem > 0;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -54,6 +66,7 @@ export function CheckoutForm({
       phone: String(formData.get("phone") ?? ""),
       address: String(formData.get("address") ?? ""),
       note: String(formData.get("note") ?? ""),
+      pointsToRedeem,
       items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
     });
 
@@ -127,6 +140,35 @@ export function CheckoutForm({
               ))}
             </div>
           )}
+          {/* Оноо ашиглах */}
+          {mounted && pointsBalance > 0 && (
+            <label
+              className={
+                "flex items-start gap-3 rounded-xl border p-3 mb-3 cursor-pointer transition-colors " +
+                (canRedeem
+                  ? "border-border hover:border-blush"
+                  : "border-border opacity-60 cursor-not-allowed")
+              }
+            >
+              <input
+                type="checkbox"
+                checked={usePoints}
+                disabled={!canRedeem}
+                onChange={(e) => setUsePoints(e.target.checked)}
+                className="w-4 h-4 accent-blush mt-0.5"
+              />
+              <span className="text-sm">
+                <span className="font-medium">Оноогоо ашиглах</span>
+                <span className="block text-xs text-muted mt-0.5">
+                  Үлдэгдэл: {pointsBalance} оноо · 1 оноо = {POINT_VALUE}₮
+                  {canRedeem
+                    ? ` · энэ захиалгад ${maxRedeem} оноо (−${formatPrice(maxRedeem * POINT_VALUE)})`
+                    : " · энэ захиалгад ашиглах боломжгүй"}
+                </span>
+              </span>
+            </label>
+          )}
+
           <div className="border-t border-border pt-3 space-y-1 text-sm">
             <div className="flex justify-between">
               <span className="text-muted">Барааны дүн</span>
@@ -139,6 +181,12 @@ export function CheckoutForm({
                   {Math.round(tier.discountRate * 100)}%)
                 </span>
                 <span>−{formatPrice(pricing.discount)}</span>
+              </div>
+            )}
+            {pricing.pointsDiscount > 0 && (
+              <div className="flex justify-between text-green-400">
+                <span>Оноо ({pricing.pointsRedeemed} оноо)</span>
+                <span>−{formatPrice(pricing.pointsDiscount)}</span>
               </div>
             )}
             <div className="flex justify-between">
