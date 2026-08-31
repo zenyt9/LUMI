@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { getTier, computePricing } from "@/lib/loyalty";
@@ -111,4 +112,49 @@ export async function createOrder(
   });
 
   return { ok: true, orderId: order.id };
+}
+
+/** Хэрэглэгч зөвхөн "Хүлээгдэж буй" захиалгаа цуцална (үлдэгдэл сэргэнэ) */
+export async function cancelOwnOrder(
+  orderId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Нэвтэрнэ үү" };
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      userId: true,
+      status: true,
+      items: { select: { productId: true, quantity: true } },
+    },
+  });
+  if (!order) return { ok: false, error: "Захиалга олдсонгүй" };
+  if (order.userId !== session.user.id) {
+    return { ok: false, error: "Зөвшөөрөлгүй" };
+  }
+  if (order.status !== "PENDING") {
+    return {
+      ok: false,
+      error: "Зөвхөн хүлээгдэж буй захиалгыг цуцлах боломжтой",
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.order.update({
+      where: { id: orderId },
+      data: { status: "CANCELLED" },
+    });
+    for (const it of order.items) {
+      await tx.product.updateMany({
+        where: { id: it.productId },
+        data: { stock: { increment: it.quantity } },
+      });
+    }
+  });
+
+  revalidatePath(`/orders/${orderId}`);
+  revalidatePath("/profile");
+  revalidatePath("/products");
+  return { ok: true };
 }

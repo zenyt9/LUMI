@@ -10,9 +10,11 @@ import { computePricing, pointsForAmount, type Tier } from "@/lib/loyalty";
 
 export function CheckoutForm({
   defaultName,
+  defaultPhone = "",
   tier,
 }: {
   defaultName: string;
+  defaultPhone?: string;
   tier: Tier;
 }) {
   const router = useRouter();
@@ -72,7 +74,7 @@ export function CheckoutForm({
         <h2 className="font-semibold text-lg">Хүргэлтийн мэдээлэл</h2>
 
         <Field label="Хүлээн авагчийн нэр" name="fullName" defaultValue={defaultName} placeholder="Овог нэр" />
-        <Field label="Утасны дугаар" name="phone" type="tel" placeholder="99112233" />
+        <Field label="Утасны дугаар" name="phone" type="tel" placeholder="99112233" defaultValue={defaultPhone} />
         <Field label="Хүргэлтийн хаяг" name="address" placeholder="Дүүрэг, хороо, байр, тоот" textarea />
         <Field label="Нэмэлт тэмдэглэл (заавал биш)" name="note" placeholder="Жишээ: ажлын цагаар залгаарай" textarea required={false} />
 

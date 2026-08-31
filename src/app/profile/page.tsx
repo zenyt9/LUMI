@@ -54,9 +54,22 @@ export default async function ProfilePage() {
           <h1 className="font-serif text-2xl font-bold">{user?.name}</h1>
           <p className="text-muted text-sm">{user?.email}</p>
         </div>
-        <span className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blush-soft/50 border border-border text-sm font-medium">
-          {tier.emoji} {tier.name} гишүүн
-        </span>
+        <div className="ml-auto flex flex-col items-end gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blush-soft/50 border border-border text-sm font-medium">
+            {tier.emoji} {tier.name} гишүүн
+          </span>
+          <div className="flex items-center gap-3 text-sm">
+            <Link href="/wishlist" className="text-muted hover:text-blush">
+              ♥ Дуртай
+            </Link>
+            <Link
+              href="/profile/settings"
+              className="text-muted hover:text-blush"
+            >
+              ⚙ Тохиргоо
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Урамшууллын карт */}

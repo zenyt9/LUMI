@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { AddToCartButton } from "./AddToCartButton";
 import { StarRating } from "./StarRating";
+import { FavoriteButton } from "./FavoriteButton";
 
 export type ProductCardData = {
   id: string;
@@ -16,7 +17,13 @@ export type ProductCardData = {
   ratingCount?: number;
 };
 
-export function ProductCard({ product }: { product: ProductCardData }) {
+export function ProductCard({
+  product,
+  favorited = false,
+}: {
+  product: ProductCardData;
+  favorited?: boolean;
+}) {
   const outOfStock = product.stock <= 0;
   const onSale = !!product.oldPrice && product.oldPrice > product.price;
   const discountPct = onSale
@@ -24,7 +31,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     : 0;
 
   return (
-    <div className="group flex flex-col bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:shadow-blush/10 transition-shadow">
+    <div className="group relative flex flex-col bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:shadow-blush/10 transition-shadow">
+      <FavoriteButton
+        productId={product.id}
+        initialFavorited={favorited}
+        callbackUrl={`/products/${product.slug}`}
+      />
       <Link href={`/products/${product.slug}`} className="relative block aspect-square overflow-hidden bg-blush-soft/40">
         <Image
           src={product.image}
@@ -39,7 +51,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </span>
         )}
         {outOfStock && (
-          <span className="absolute top-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+          <span className="absolute bottom-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
             Дууссан
           </span>
         )}

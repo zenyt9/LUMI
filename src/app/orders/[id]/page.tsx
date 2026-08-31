@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
+import { CancelOrderButton } from "@/components/CancelOrderButton";
 
 export default async function OrderDetailPage({
   params,
@@ -158,10 +159,13 @@ export default async function OrderDetailPage({
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex items-center justify-between gap-4">
         <Link href="/profile" className="text-blush hover:text-blush-dark font-medium">
           ← Захиалгууд руу буцах
         </Link>
+        {order.status === "PENDING" && order.userId === session.user.id && (
+          <CancelOrderButton orderId={order.id} />
+        )}
       </div>
     </div>
   );

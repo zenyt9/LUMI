@@ -1,4 +1,6 @@
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getFavoriteProductIds } from "@/lib/favorites";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
 import type { Prisma } from "@prisma/client";
@@ -27,10 +29,12 @@ export default async function ProductsPage({
   else if (sort === "price-desc") orderBy = { price: "desc" };
   else if (sort === "name") orderBy = { name: "asc" };
 
-  const [products, categories, activeBrand] = await Promise.all([
+  const session = await auth();
+  const [products, categories, activeBrand, favoritedIds] = await Promise.all([
     prisma.product.findMany({ where, orderBy }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     brand ? prisma.brand.findUnique({ where: { slug: brand } }) : null,
+    getFavoriteProductIds(session?.user?.id),
   ]);
 
   return (
@@ -54,7 +58,11 @@ export default async function ProductsPage({
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-8">
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              favorited={favoritedIds.has(p.id)}
+            />
           ))}
         </div>
       )}

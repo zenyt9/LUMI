@@ -43,21 +43,35 @@ model Product {
   brand       Brand?      @relation(fields: [brandId], references: [id])
   orderItems  OrderItem[]
   reviews     Review[]
+  favorites   Favorite[]
   ratingSum   Int         @default(0) // үнэлгээний нийлбэр (дундажийг хурдан бодоход)
   ratingCount Int         @default(0) // үнэлгээ өгсөн тоо
   createdAt   DateTime    @default(now())
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   name         String
-  email        String   @unique
+  email        String     @unique
   passwordHash String
-  role         String   @default("USER") // "USER" | "ADMIN"
-  points       Int      @default(0) // урамшууллын оноо (түвшин тодорхойлно)
+  role         String     @default("USER") // "USER" | "ADMIN"
+  points       Int        @default(0) // урамшууллын оноо (түвшин тодорхойлно)
+  phone        String? // холбоо барих утас (checkout-д урьдчилж бөглөнө)
   orders       Order[]
   reviews      Review[]
-  createdAt    DateTime @default(now())
+  favorites    Favorite[]
+  createdAt    DateTime   @default(now())
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
 }
 
 model Review {

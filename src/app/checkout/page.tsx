@@ -12,7 +12,7 @@ export default async function CheckoutPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { points: true },
+    select: { points: true, phone: true },
   });
   const tier = getTier(dbUser?.points ?? 0);
 
@@ -21,7 +21,11 @@ export default async function CheckoutPage() {
       <h1 className="font-serif text-3xl font-bold mb-8">
         Захиалга баталгаажуулах
       </h1>
-      <CheckoutForm defaultName={session.user.name ?? ""} tier={tier} />
+      <CheckoutForm
+        defaultName={session.user.name ?? ""}
+        defaultPhone={dbUser?.phone ?? ""}
+        tier={tier}
+      />
     </div>
   );
 }

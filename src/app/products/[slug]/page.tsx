@@ -1,12 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
+import { getFavoriteProductIds } from "@/lib/favorites";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { ProductCard } from "@/components/ProductCard";
 import { StarRating } from "@/components/StarRating";
 import { ProductReviews } from "@/components/ProductReviews";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default async function ProductDetailPage({
   params,
@@ -22,12 +25,17 @@ export default async function ProductDetailPage({
 
   if (!product) notFound();
 
-  const related = await prisma.product.findMany({
-    where: { categoryId: product.categoryId, NOT: { id: product.id } },
-    take: 4,
-  });
+  const session = await auth();
+  const [related, favoritedIds] = await Promise.all([
+    prisma.product.findMany({
+      where: { categoryId: product.categoryId, NOT: { id: product.id } },
+      take: 4,
+    }),
+    getFavoriteProductIds(session?.user?.id),
+  ]);
 
   const outOfStock = product.stock <= 0;
+  const isFavorited = favoritedIds.has(product.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -109,18 +117,26 @@ export default async function ProductDetailPage({
             )}
           </div>
 
-          {!outOfStock && (
-            <ProductDetailActions
-              product={{
-                id: product.id,
-                name: product.name,
-                slug: product.slug,
-                price: product.price,
-                image: product.image,
-              }}
-              maxStock={product.stock}
+          <div className="flex flex-wrap items-center gap-4">
+            {!outOfStock && (
+              <ProductDetailActions
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  slug: product.slug,
+                  price: product.price,
+                  image: product.image,
+                }}
+                maxStock={product.stock}
+              />
+            )}
+            <FavoriteButton
+              productId={product.id}
+              initialFavorited={isFavorited}
+              callbackUrl={`/products/${product.slug}`}
+              variant="inline"
             />
-          )}
+          </div>
         </div>
       </div>
 
@@ -140,7 +156,11 @@ export default async function ProductDetailPage({
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                favorited={favoritedIds.has(p.id)}
+              />
             ))}
           </div>
         </section>

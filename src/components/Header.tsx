@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { User, LayoutDashboard } from "lucide-react";
+import { User, LayoutDashboard, Heart } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getTier } from "@/lib/loyalty";
@@ -83,6 +83,13 @@ export async function Header() {
                   <LayoutDashboard className="w-5 h-5" strokeWidth={1.5} />
                 </Link>
               )}
+              <Link
+                href="/wishlist"
+                className="p-2 text-foreground hover:text-blush transition-colors"
+                title="Дуртай бараа"
+              >
+                <Heart className="w-5 h-5" strokeWidth={1.5} />
+              </Link>
               <Link
                 href="/profile"
                 className="p-2 text-foreground hover:text-blush transition-colors"

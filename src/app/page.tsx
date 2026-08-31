@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getFavoriteProductIds } from "@/lib/favorites";
 import { ProductCard } from "@/components/ProductCard";
 import { Faq } from "@/components/Faq";
 
 export default async function HomePage() {
+  const session = await auth();
+  const favoritedIds = await getFavoriteProductIds(session?.user?.id);
   const [featured, categories, saleRaw] = await Promise.all([
     prisma.product.findMany({
       where: { featured: true },
@@ -112,7 +116,7 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {saleProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} favorited={favoritedIds.has(p.id)} />
             ))}
           </div>
         </section>
@@ -132,7 +136,7 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {featured.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} favorited={favoritedIds.has(p.id)} />
             ))}
           </div>
         </section>
@@ -156,7 +160,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {c.products.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} favorited={favoritedIds.has(p.id)} />
               ))}
             </div>
           </section>
