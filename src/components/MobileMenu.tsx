@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { HeaderSearch } from "./HeaderSearch";
 
 type Category = { id: string; name: string; slug: string };
 type Brand = { id: string; name: string; slug: string };
@@ -53,6 +54,9 @@ export function MobileMenu({
           {/* Цэсний хавтан */}
           <div className="fixed top-16 inset-x-0 bg-background border-b border-border z-50 shadow-xl animate-fade-up">
             <nav className="flex flex-col p-4 gap-1 text-sm font-medium max-h-[calc(100vh-4rem)] overflow-y-auto">
+              <div className="pb-2">
+                <HeaderSearch />
+              </div>
               <Link
                 href="/"
                 onClick={close}

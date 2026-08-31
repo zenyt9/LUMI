@@ -7,6 +7,7 @@ import { CartBadge } from "./CartBadge";
 import { CategoryMenu } from "./CategoryMenu";
 import { BrandMenu } from "./BrandMenu";
 import { MobileMenu } from "./MobileMenu";
+import { HeaderSearch } from "./HeaderSearch";
 import { logout } from "@/lib/actions/auth";
 
 export async function Header() {
@@ -57,6 +58,9 @@ export async function Header() {
             </Link>
           </nav>
         </div>
+
+        {/* Хайлт (desktop) */}
+        <HeaderSearch className="hidden lg:block flex-1 max-w-xs mx-2" />
 
         {/* Баруун тал */}
         <div className="flex items-center gap-2">
