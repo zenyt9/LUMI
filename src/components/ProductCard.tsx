@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { AddToCartButton } from "./AddToCartButton";
+import { StarRating } from "./StarRating";
 
 export type ProductCardData = {
   id: string;
@@ -11,6 +12,8 @@ export type ProductCardData = {
   oldPrice?: number | null;
   image: string;
   stock: number;
+  ratingSum?: number;
+  ratingCount?: number;
 };
 
 export function ProductCard({ product }: { product: ProductCardData }) {
@@ -48,6 +51,15 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.name}
           </h3>
         </Link>
+        {product.ratingCount != null && product.ratingCount > 0 && (
+          <div className="mt-1.5">
+            <StarRating
+              rating={(product.ratingSum ?? 0) / product.ratingCount}
+              count={product.ratingCount}
+              size="sm"
+            />
+          </div>
+        )}
         <div className="mt-2 mb-4 flex items-baseline gap-2">
           <span className="font-serif text-lg font-semibold text-blush-dark">
             {formatPrice(product.price)}

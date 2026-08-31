@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { ProductCard } from "@/components/ProductCard";
+import { StarRating } from "@/components/StarRating";
+import { ProductReviews } from "@/components/ProductReviews";
 
 export default async function ProductDetailPage({
   params,
@@ -66,9 +68,18 @@ export default async function ProductDetailPage({
           >
             {product.category.name}
           </Link>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold mb-4">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold mb-3">
             {product.name}
           </h1>
+          {product.ratingCount > 0 && (
+            <div className="mb-4">
+              <StarRating
+                rating={product.ratingSum / product.ratingCount}
+                count={product.ratingCount}
+                size="md"
+              />
+            </div>
+          )}
           <div className="flex items-center gap-3 mb-6">
             <span className="font-serif text-3xl font-bold text-blush-dark">
               {formatPrice(product.price)}
@@ -112,6 +123,14 @@ export default async function ProductDetailPage({
           )}
         </div>
       </div>
+
+      {/* Үнэлгээ & сэтгэгдэл */}
+      <ProductReviews
+        productId={product.id}
+        productSlug={product.slug}
+        ratingSum={product.ratingSum}
+        ratingCount={product.ratingCount}
+      />
 
       {/* Холбоотой бараа */}
       {related.length > 0 && (

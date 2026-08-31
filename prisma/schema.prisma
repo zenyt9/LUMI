@@ -42,6 +42,9 @@ model Product {
   brandId     String?
   brand       Brand?      @relation(fields: [brandId], references: [id])
   orderItems  OrderItem[]
+  reviews     Review[]
+  ratingSum   Int         @default(0) // үнэлгээний нийлбэр (дундажийг хурдан бодоход)
+  ratingCount Int         @default(0) // үнэлгээ өгсөн тоо
   createdAt   DateTime    @default(now())
 }
 
@@ -53,7 +56,21 @@ model User {
   role         String   @default("USER") // "USER" | "ADMIN"
   points       Int      @default(0) // урамшууллын оноо (түвшин тодорхойлно)
   orders       Order[]
+  reviews      Review[]
   createdAt    DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int // 1-5 од
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId]) // нэг хэрэглэгч нэг бараанд нэг л үнэлгээ
 }
 
 model Order {
