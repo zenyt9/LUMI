@@ -22,21 +22,21 @@ function eq(label: string, got: unknown, want: unknown) {
 
 // --- Түвшин тодорхойлох ---
 eq("0 оноо → Хүрэл", getTier(0).key, "BRONZE");
-eq("199 оноо → Хүрэл", getTier(199).key, "BRONZE");
-eq("200 оноо → Мөнгө", getTier(200).key, "SILVER");
-eq("499 оноо → Мөнгө", getTier(499).key, "SILVER");
-eq("500 оноо → Алт", getTier(500).key, "GOLD");
-eq("1000 оноо → Платинум", getTier(1000).key, "PLATINUM");
+eq("1499 оноо → Хүрэл", getTier(1499).key, "BRONZE");
+eq("1500 оноо → Мөнгө", getTier(1500).key, "SILVER");
+eq("2999 оноо → Мөнгө", getTier(2999).key, "SILVER");
+eq("3000 оноо → Алт", getTier(3000).key, "GOLD");
 eq("5000 оноо → Платинум", getTier(5000).key, "PLATINUM");
+eq("9999 оноо → Платинум", getTier(9999).key, "PLATINUM");
 
 // --- Дараагийн түвшин ---
 eq("0 оноо дараагийнх → Мөнгө", getNextTier(0)?.key, "SILVER");
-eq("1000 оноо дараагийнх → байхгүй", getNextTier(1000), null);
+eq("5000 оноо дараагийнх → байхгүй", getNextTier(5000), null);
 
 // --- Ахиц ---
 eq("0 оноо ахиц → 0%", tierProgress(0), 0);
-eq("100 оноо ахиц → 50%", tierProgress(100), 50);
-eq("1000 оноо ахиц → 100%", tierProgress(1000), 100);
+eq("750 оноо ахиц → 50%", tierProgress(750), 50);
+eq("5000 оноо ахиц → 100%", tierProgress(5000), 100);
 
 // --- Оноо тооцоо ---
 eq("50000₮ → 50 оноо", pointsForAmount(50000), 50);
@@ -61,32 +61,32 @@ eq("Хүрэл 120000₮ үнэгүй хүргэлт", computePricing(120000, ge
   shipping: 0,
   total: 120000,
 });
-// Мөнгө 100000₮ → 3% хөнгөлөлт=3000, дараа нь 97000 < 100000 тул хүргэлт 5000
-eq("Мөнгө 100000₮ (3% хөнгөлөлт)", computePricing(100000, getTier(200)), {
-  subtotal: 100000,
-  discount: 3000,
-  pointsRedeemed: 0,
-  pointsDiscount: 0,
-  shipping: 5000,
-  total: 102000,
-});
-// Алт 50000₮ → 5% хөнгөлөлт=2500, үргэлж үнэгүй хүргэлт
-eq("Алт 50000₮ (5% + үнэгүй хүргэлт)", computePricing(50000, getTier(500)), {
+// Мөнгө: хөнгөлөлтгүй, гэхдээ ҮРГЭЛЖ үнэгүй хүргэлт
+eq("Мөнгө 50000₮ (үнэгүй хүргэлт)", computePricing(50000, getTier(1500)), {
   subtotal: 50000,
-  discount: 2500,
+  discount: 0,
   pointsRedeemed: 0,
   pointsDiscount: 0,
   shipping: 0,
-  total: 47500,
+  total: 50000,
 });
-// Платинум 200000₮ → 8%=16000, үнэгүй хүргэлт
-eq("Платинум 200000₮ (8% + үнэгүй хүргэлт)", computePricing(200000, getTier(1000)), {
-  subtotal: 200000,
-  discount: 16000,
+// Алт 50000₮ → 3% хөнгөлөлт=1500, үнэгүй хүргэлт
+eq("Алт 50000₮ (3% + үнэгүй хүргэлт)", computePricing(50000, getTier(3000)), {
+  subtotal: 50000,
+  discount: 1500,
   pointsRedeemed: 0,
   pointsDiscount: 0,
   shipping: 0,
-  total: 184000,
+  total: 48500,
+});
+// Платинум 200000₮ → 5%=10000, үнэгүй хүргэлт
+eq("Платинум 200000₮ (5% + үнэгүй хүргэлт)", computePricing(200000, getTier(5000)), {
+  subtotal: 200000,
+  discount: 10000,
+  pointsRedeemed: 0,
+  pointsDiscount: 0,
+  shipping: 0,
+  total: 190000,
 });
 
 // --- Оноо зарцуулах ---
