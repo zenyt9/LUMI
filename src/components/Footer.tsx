@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
+import { FacebookIcon, InstagramIcon } from "./BrandIcons";
 
 export function Footer() {
   return (
@@ -9,36 +10,10 @@ export function Footer() {
           <div className="font-serif text-xl font-bold mb-2">
             LumiBeauty <span className="text-blush">✦</span>
           </div>
-          <p className="text-sm text-muted leading-relaxed mb-4">
+          <p className="text-sm text-muted leading-relaxed">
             Танай гоо сайхны өдөр тутмын хэрэгцээг хангах чанартай
             бүтээгдэхүүний онлайн дэлгүүр.
           </p>
-          {(SITE.facebook || SITE.instagram) && (
-            <div className="flex items-center gap-3">
-              {SITE.facebook && (
-                <a
-                  href={SITE.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Facebook"
-                  className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-base hover:text-blush hover:border-blush transition-colors"
-                >
-                  📘
-                </a>
-              )}
-              {SITE.instagram && (
-                <a
-                  href={SITE.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-base hover:text-blush hover:border-blush transition-colors"
-                >
-                  📷
-                </a>
-              )}
-            </div>
-          )}
         </div>
 
         <div>
@@ -92,6 +67,34 @@ export function Footer() {
               </a>
             </li>
           </ul>
+
+          {/* Сошиал icon-ууд */}
+          {(SITE.facebook || SITE.instagram) && (
+            <div className="flex items-center gap-3 mt-4">
+              {SITE.facebook && (
+                <a
+                  href={SITE.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-muted hover:text-blush hover:border-blush transition-colors"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                </a>
+              )}
+              {SITE.instagram && (
+                <a
+                  href={SITE.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-muted hover:text-blush hover:border-blush transition-colors"
+                >
+                  <InstagramIcon className="w-4 h-4" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="border-t border-border py-4 text-center text-xs text-muted">

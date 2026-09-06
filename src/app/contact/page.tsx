@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { SITE } from "@/lib/site";
+import { FacebookIcon, InstagramIcon } from "@/components/BrandIcons";
 
 export const metadata: Metadata = {
   title: "Холбоо барих — LumiBeauty",
@@ -56,9 +57,9 @@ export default function ContactPage() {
               href={SITE.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border hover:border-blush transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border hover:border-blush hover:text-blush transition-colors"
             >
-              📘 Facebook
+              <FacebookIcon className="w-4 h-4" /> Facebook
             </a>
           )}
           {SITE.instagram && (
@@ -66,9 +67,9 @@ export default function ContactPage() {
               href={SITE.instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border hover:border-blush transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border hover:border-blush hover:text-blush transition-colors"
             >
-              📷 Instagram
+              <InstagramIcon className="w-4 h-4" /> Instagram
             </a>
           )}
         </div>
