@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -12,7 +12,6 @@ export default function ContactPage() {
     { icon: Phone, label: "Утас", value: SITE.phone, href: `tel:${SITE.phone.replace(/\s/g, "")}` },
     { icon: Mail, label: "Имэйл", value: SITE.email, href: `mailto:${SITE.email}` },
     { icon: MapPin, label: "Хаяг", value: SITE.address },
-    { icon: Clock, label: "Ажиллах цаг", value: SITE.hours },
   ];
 
   return (

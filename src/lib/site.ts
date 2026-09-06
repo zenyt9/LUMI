@@ -4,7 +4,6 @@ export const SITE = {
   phone: "+976 5056 9921",
   email: "LumiBeautyMNG@gmail.com",
   address: "Улаанбаатар, Монгол",
-  hours: "Даваа–Бямба, 10:00–19:00",
   // Хоосон бол тухайн холбоос харагдахгүй
   facebook: "https://www.facebook.com/profile.php?id=61594391240374",
   instagram: "https://www.instagram.com/lumibeauty2324/",
