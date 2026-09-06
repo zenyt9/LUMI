@@ -5,7 +5,7 @@ import { getTier } from "../src/lib/loyalty.ts";
 const prisma = new PrismaClient();
 
 async function main() {
-  const points = 550; // Алт түвшин (500+)
+  const points = 3200; // Алт түвшин (3000+)
   const user = await prisma.user.update({
     where: { email: "user@lumi.mn" },
     data: { points },
