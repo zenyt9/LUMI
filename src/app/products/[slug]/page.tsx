@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Truck } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
+import { DELIVERY_DAYS } from "@/lib/site";
 import { getFavoriteProductIds } from "@/lib/favorites";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { ProductCard } from "@/components/ProductCard";
@@ -34,7 +36,6 @@ export default async function ProductDetailPage({
     getFavoriteProductIds(session?.user?.id),
   ]);
 
-  const outOfStock = product.stock <= 0;
   const isFavorited = favoritedIds.has(product.id);
 
   return (
@@ -107,29 +108,28 @@ export default async function ProductDetailPage({
             {product.description}
           </p>
 
-          <div className="mb-6 text-sm">
-            {outOfStock ? (
-              <span className="text-red-500 font-medium">● Дууссан</span>
-            ) : (
-              <span className="text-green-600 font-medium">
-                ● Бэлэн байгаа ({product.stock} ширхэг)
-              </span>
-            )}
+          <div className="flex items-start gap-3 bg-blush-soft/40 border border-border rounded-xl p-4 mb-6 text-sm">
+            <Truck className="w-5 h-5 text-blush shrink-0 mt-0.5" strokeWidth={1.5} />
+            <div>
+              <p className="font-medium">Захиалгаар ирнэ</p>
+              <p className="text-muted mt-0.5">
+                Энэ бүтээгдэхүүнийг захиалснаас хойш{" "}
+                <span className="font-medium text-foreground">{DELIVERY_DAYS}</span>
+                -т хүргэж өгнө.
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            {!outOfStock && (
-              <ProductDetailActions
-                product={{
-                  id: product.id,
-                  name: product.name,
-                  slug: product.slug,
-                  price: product.price,
-                  image: product.image,
-                }}
-                maxStock={product.stock}
-              />
-            )}
+            <ProductDetailActions
+              product={{
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                price: product.price,
+                image: product.image,
+              }}
+            />
             <FavoriteButton
               productId={product.id}
               initialFavorited={isFavorited}

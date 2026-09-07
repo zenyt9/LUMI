@@ -12,7 +12,6 @@ export type ProductCardData = {
   price: number;
   oldPrice?: number | null;
   image: string;
-  stock: number;
   ratingSum?: number;
   ratingCount?: number;
 };
@@ -24,7 +23,6 @@ export function ProductCard({
   product: ProductCardData;
   favorited?: boolean;
 }) {
-  const outOfStock = product.stock <= 0;
   const onSale = !!product.oldPrice && product.oldPrice > product.price;
   const discountPct = onSale
     ? Math.round((1 - product.price / product.oldPrice!) * 100)
@@ -48,11 +46,6 @@ export function ProductCard({
         {onSale && (
           <span className="absolute top-3 left-3 bg-blush text-white text-xs font-semibold px-2 py-1 rounded-full">
             -{discountPct}%
-          </span>
-        )}
-        {outOfStock && (
-          <span className="absolute bottom-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-            Дууссан
           </span>
         )}
       </Link>
@@ -83,25 +76,16 @@ export function ProductCard({
           )}
         </div>
         <div className="mt-auto">
-          {outOfStock ? (
-            <button
-              disabled
-              className="w-full px-4 py-2 text-sm rounded-full bg-border text-muted cursor-not-allowed"
-            >
-              Дууссан
-            </button>
-          ) : (
-            <AddToCartButton
-              full
-              product={{
-                id: product.id,
-                name: product.name,
-                slug: product.slug,
-                price: product.price,
-                image: product.image,
-              }}
-            />
-          )}
+          <AddToCartButton
+            full
+            product={{
+              id: product.id,
+              name: product.name,
+              slug: product.slug,
+              price: product.price,
+              image: product.image,
+            }}
+          />
         </div>
       </div>
     </div>

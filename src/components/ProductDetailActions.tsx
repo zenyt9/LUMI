@@ -7,10 +7,11 @@ import type { CartItem } from "@/lib/store/cart";
 
 type Props = {
   product: Omit<CartItem, "quantity">;
-  maxStock: number;
 };
 
-export function ProductDetailActions({ product, maxStock }: Props) {
+const MAX_QTY = 99;
+
+export function ProductDetailActions({ product }: Props) {
   const [qty, setQty] = useState(1);
 
   return (
@@ -25,7 +26,7 @@ export function ProductDetailActions({ product, maxStock }: Props) {
         </button>
         <span className="w-10 text-center font-medium">{qty}</span>
         <button
-          onClick={() => setQty((q) => Math.min(maxStock, q + 1))}
+          onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
           className="p-3 hover:bg-blush-soft transition-colors"
           aria-label="Нэмэх"
         >

@@ -22,7 +22,6 @@ const productSchema = z.object({
   description: z.string().min(5, "Тайлбар оруулна уу"),
   price: z.coerce.number().int().positive("Үнэ эерэг тоо байх ёстой"),
   oldPrice: z.coerce.number().int().positive().optional(),
-  stock: z.coerce.number().int().min(0, "Үлдэгдэл 0-ээс багагүй"),
   categoryId: z.string().min(1, "Ангилал сонгоно уу"),
   brandId: z.string().optional(),
   featured: z.boolean().optional(),
@@ -48,7 +47,6 @@ export async function createProduct(
     description: formData.get("description"),
     price: formData.get("price"),
     oldPrice: formData.get("oldPrice") || undefined,
-    stock: formData.get("stock"),
     categoryId: formData.get("categoryId"),
     featured: formData.get("featured") === "on",
     image: formData.get("image"),
@@ -92,7 +90,6 @@ export async function createProduct(
       description: data.description,
       price: data.price,
       oldPrice,
-      stock: data.stock,
       categoryId: data.categoryId,
       brandId: readBrandId(formData),
       featured: data.featured ?? false,
@@ -117,7 +114,6 @@ export async function updateProduct(
     description: formData.get("description"),
     price: formData.get("price"),
     oldPrice: formData.get("oldPrice") || undefined,
-    stock: formData.get("stock"),
     categoryId: formData.get("categoryId"),
     featured: formData.get("featured") === "on",
     image: formData.get("image"),
@@ -151,7 +147,6 @@ export async function updateProduct(
       description: data.description,
       price: data.price,
       oldPrice,
-      stock: data.stock,
       categoryId: data.categoryId,
       brandId: readBrandId(formData),
       featured: data.featured ?? false,
@@ -169,10 +164,10 @@ export async function deleteProduct(id: string) {
   // Захиалгад орсон бараа байж болзошгүй тул шалгана
   const inOrders = await prisma.orderItem.count({ where: { productId: id } });
   if (inOrders > 0) {
-    // Захиалгатай бол устгахын оронд үлдэгдлийг 0 болгож "нуух"
+    // Захиалгатай бол бүрэн устгах боломжгүй тул онцлохоос хасна
     await prisma.product.update({
       where: { id },
-      data: { stock: 0, featured: false },
+      data: { featured: false },
     });
   } else {
     await prisma.product.delete({ where: { id } });
@@ -204,7 +199,6 @@ export async function updateOrderStatus(orderId: string, status: string) {
         pointsEarned: true,
         pointsRedeemed: true,
         status: true,
-        items: { select: { productId: true, quantity: true } },
       },
     });
     if (!order) throw new Error("Захиалга олдсонгүй");
@@ -230,14 +224,8 @@ export async function updateOrderStatus(orderId: string, status: string) {
       }
     }
 
-    // Цуцлагдвал (өмнө нь цуцлагдаагүй байсан): үлдэгдэл сэргээх, оноог буцаах
+    // Цуцлагдвал (өмнө нь цуцлагдаагүй байсан): оногыг буцаах
     if (status === "CANCELLED" && prevStatus !== "CANCELLED") {
-      for (const it of order.items) {
-        await tx.product.updateMany({
-          where: { id: it.productId },
-          data: { stock: { increment: it.quantity } },
-        });
-      }
       // Олгосон оноог буцаах (нийт болон үлдэгдлээс), зарцуулсан оноог үлдэгдэлд сэргээх
       const balanceDelta = order.pointsRedeemed - order.pointsEarned;
       if (order.pointsEarned > 0) {

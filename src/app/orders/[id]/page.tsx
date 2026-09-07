@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
+import { DELIVERY_DAYS } from "@/lib/site";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CancelOrderButton } from "@/components/CancelOrderButton";
 
@@ -45,8 +46,9 @@ export default async function OrderDetailPage({
           <div>
             <p className="font-semibold">Захиалга амжилттай!</p>
             <p className="text-sm">
-              Хүргэлтийн ажилтан барааг авчрахдаа төлбөрийг тань дээр газар дээр
-              нь авна. Бид тантай удахгүй холбогдоно. Баярлалаа 💕
+              Таны захиалга <span className="font-medium">{DELIVERY_DAYS}</span>-т
+              хүргэгдэнэ. Хүргэлтийн ажилтан барааг авчрахдаа төлбөрийг тань дээр
+              газар дээр нь авна. Баярлалаа 💕
             </p>
           </div>
         </div>

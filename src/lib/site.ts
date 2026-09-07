@@ -8,3 +8,6 @@ export const SITE = {
   facebook: "https://www.facebook.com/profile.php?id=61594391240374",
   instagram: "https://www.instagram.com/lumibeauty2324/",
 };
+
+// Бүх бараа захиалгаар ирдэг — хүргэлтийн хугацаа
+export const DELIVERY_DAYS = "7-21 хоног";

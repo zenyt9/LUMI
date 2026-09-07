@@ -7,6 +7,7 @@ import { useCart } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { createOrder } from "@/lib/actions/order";
 import { computePricing, pointsForAmount, type Tier } from "@/lib/loyalty";
+import { DELIVERY_DAYS } from "@/lib/site";
 
 export function CheckoutForm({
   defaultName,
@@ -81,14 +82,26 @@ export function CheckoutForm({
         <Field label="Хүргэлтийн хаяг" name="address" placeholder="Дүүрэг, хороо, байр, тоот" textarea />
         <Field label="Нэмэлт тэмдэглэл (заавал биш)" name="note" placeholder="Жишээ: ажлын цагаар залгаарай" textarea required={false} />
 
+        {/* Хүргэлтийн хугацаа — захиалгаар ирнэ */}
+        <div className="flex items-start gap-3 bg-blush-soft/40 border border-border rounded-xl p-4">
+          <span className="text-xl leading-none">📦</span>
+          <div className="text-sm">
+            <p className="font-medium">Захиалгаар ирнэ — {DELIVERY_DAYS}</p>
+            <p className="text-muted mt-0.5">
+              Бүх бүтээгдэхүүнийг захиалгаар авчирдаг тул захиалснаас хойш{" "}
+              {DELIVERY_DAYS}-т хүргэгдэнэ.
+            </p>
+          </div>
+        </div>
+
         {/* Төлбөрийн нөхцөл — хүргэлтийн үед бэлнээр */}
         <div className="flex items-start gap-3 bg-blush-soft/40 border border-border rounded-xl p-4">
           <span className="text-xl leading-none">💵</span>
           <div className="text-sm">
             <p className="font-medium">Хүргэлтийн үед бэлнээр төлөх</p>
             <p className="text-muted mt-0.5">
-              Захиалгаа баталгаажуулсны дараа хүргэлтийн ажилтан барааг авчирч,
-              тооцоог тань дээр газар дээр нь хийнэ.
+              Хүргэлтийн ажилтан барааг авчрахдаа тооцоог тань дээр газар дээр нь
+              хийнэ.
             </p>
           </div>
         </div>

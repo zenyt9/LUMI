@@ -63,7 +63,7 @@ export default async function HomePage() {
       <section className="border-y border-border bg-blush-soft/30">
         <div className="mx-auto max-w-6xl px-4 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
           {[
-            ["🚚", "Хурдан хүргэлт"],
+            ["📦", "Захиалгаар ирнэ"],
             ["✨", "100% жинхэнэ"],
             ["💵", "Хүргэлтэд төлөх"],
             ["💬", "24/7 тусламж"],
@@ -170,7 +170,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid sm:grid-cols-3 gap-6 text-center">
           {[
-            ["🚚", "Хурдан хүргэлт", "Улаанбаатар хотод 24 цагт"],
+            ["📦", "Захиалгаар ирнэ", "Захиалснаас хойш 7-21 хоногт хүргэнэ"],
             ["✨", "Чанарын баталгаа", "100% жинхэнэ бүтээгдэхүүн"],
             ["💵", "Хялбар төлбөр", "Хүргэлтийн үед бэлнээр"],
           ].map(([icon, title, desc]) => (

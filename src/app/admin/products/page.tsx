@@ -73,7 +73,6 @@ export default async function AdminProductsPage({
               <th className="p-3 font-medium">Бараа</th>
               <th className="p-3 font-medium hidden sm:table-cell">Ангилал</th>
               <th className="p-3 font-medium">Үнэ</th>
-              <th className="p-3 font-medium">Үлдэгдэл</th>
               <th className="p-3 font-medium text-right">Үйлдэл</th>
             </tr>
           </thead>
@@ -93,11 +92,6 @@ export default async function AdminProductsPage({
                   {p.category.name}
                 </td>
                 <td className="p-3 whitespace-nowrap">{formatPrice(p.price)}</td>
-                <td className="p-3">
-                  <span className={p.stock <= 0 ? "text-red-500" : ""}>
-                    {p.stock}
-                  </span>
-                </td>
                 <td className="p-3">
                   <div className="flex items-center gap-3 justify-end">
                     <Link

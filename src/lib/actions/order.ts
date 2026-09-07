@@ -62,12 +62,7 @@ export async function createOrder(
     if (!product) {
       return { ok: false, error: "Зарим бараа олдсонгүй" };
     }
-    if (product.stock < item.quantity) {
-      return {
-        ok: false,
-        error: `"${product.name}" хүрэлцэхгүй байна (үлдэгдэл: ${product.stock})`,
-      };
-    }
+    // Бүх бараа захиалгаар ирдэг — үлдэгдэл шалгахгүй
     subtotal += product.price * item.quantity;
     orderItems.push({
       productId: product.id,
@@ -86,7 +81,7 @@ export async function createOrder(
   const balance = dbUser?.pointsBalance ?? 0;
   const pricing = computePricing(subtotal, tier, pointsToRedeem ?? 0, balance);
 
-  // Захиалга үүсгэх + үлдэгдэл хорогдуулах + оноо зарцуулах (нэг гүйлгээнд)
+  // Захиалга үүсгэх + оноо зарцуулах (нэг гүйлгээнд)
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
       data: {
@@ -104,13 +99,6 @@ export async function createOrder(
         items: { create: orderItems },
       },
     });
-
-    for (const item of orderItems) {
-      await tx.product.update({
-        where: { id: item.productId },
-        data: { stock: { decrement: item.quantity } },
-      });
-    }
 
     // Зарцуулсан оноог үлдэгдлээс хасна
     if (pricing.pointsRedeemed > 0) {
@@ -139,7 +127,6 @@ export async function cancelOwnOrder(
       userId: true,
       status: true,
       pointsRedeemed: true,
-      items: { select: { productId: true, quantity: true } },
     },
   });
   if (!order) return { ok: false, error: "Захиалга олдсонгүй" };
@@ -158,12 +145,6 @@ export async function cancelOwnOrder(
       where: { id: orderId },
       data: { status: "CANCELLED" },
     });
-    for (const it of order.items) {
-      await tx.product.updateMany({
-        where: { id: it.productId },
-        data: { stock: { increment: it.quantity } },
-      });
-    }
     // Зарцуулсан оноог буцаана
     if (order.pointsRedeemed > 0) {
       await tx.user.update({
