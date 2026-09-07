@@ -2,14 +2,17 @@
 
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useCart } from "@/lib/store/cart";
 
 export function CartBadge() {
   const count = useCart((s) => s.items.reduce((a, i) => a + i.quantity, 0));
   // Hydration зөрчлөөс сэргийлж эхний рендэрт тоог нуух
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   return (
     <Link

@@ -12,9 +12,6 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },
-  "prisma": {
-    "seed": "node --experimental-strip-types prisma/seed.ts"
-  },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
     "@prisma/client": "^6.19.3",
@@ -36,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "prisma": "^6.19.3",

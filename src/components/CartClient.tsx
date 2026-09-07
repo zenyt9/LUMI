@@ -5,9 +5,8 @@ import Link from "next/link";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
-  computePricing,
   SHIPPING_FEE,
   FREE_SHIPPING_THRESHOLD,
   type Tier,
@@ -15,8 +14,11 @@ import {
 
 export function CartClient({ tier }: { tier: Tier | null }) {
   const { items, setQuantity, remove, totalPrice } = useCart();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   if (!mounted) {
     return (
