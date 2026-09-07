@@ -9,11 +9,13 @@ import { Footer } from "@/components/Footer";
 const sans = Inter({
   variable: "--font-sans",
   subsets: ["latin", "cyrillic"],
+  display: "swap",
 });
 
 const serif = Playfair_Display({
   variable: "--font-serif",
   subsets: ["latin", "cyrillic"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
